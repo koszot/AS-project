@@ -17,7 +17,7 @@ Table of Contents
 * [Summary (OUTDATED)](#summary-outdated)
 * [Silix/Hifix és enrichment (OUTDATED)](#silixhifix-és-enrichment-outdated)
 
-## Preparations
+# Preparations
 
 A bemeneti annotációs fájlokat át kell alakítani, hogy megfelelőek legyenek a Cufflinks számára illetve elő kell állítani azokat az annotációs és FASTA fájlokat amik az RRPM analízishez szükségesek.
 
@@ -201,7 +201,7 @@ bedtools getfasta -name -fo ./umaydis_genome/umaydis_genes.fasta -fi ./umaydis_g
 perl -pi -e 's/::.*//g' ./umaydis_genome/umaydis_genes.fasta
 ```
 
-## RRPM: STAR Alignment and Cufflinks Assembly
+# RRPM: STAR Alignment and Cufflinks Assembly
 
 Megnézzük milyen hosszúak a gének és az intronok a STAR és a Cufflinks beállításához.
 
@@ -335,7 +335,7 @@ scripts/umaydis/INTRON_LENGTH_umaydis.R
 Cufflinks_scripts/umaydis_STAR_CUFF_RRPM.sh
 ```
 
-## Filtering and Merge
+# Filtering and Merge
 
 Az RRPM outputot filterezzük, majd összeillesztjük az eredeti annotációs fájlal, hogy kitöltsük az esetleges hézagokat, ahol nem mutatott expressziós értéket az eredeti annotációban szereplő transzkript.
 
@@ -477,7 +477,7 @@ scripts/umaydis/FUSION_FILTER_umaydis.R
 # nincs
 ```
 
-## Alternative Splicing Statistics
+# Alternative Splicing Statistics
 
 Kinyerjük az alternative splicing statisztikákat majd az output ASpli_binFeatures.log fájlt átnevezzük xy_ASpli_binFeatures.log-ra ahol az xy a faj neve. Ezek a fájlok ezen a néven érhetőek el az adott faj könyvtárába.
 
@@ -535,7 +535,7 @@ scripts/scommune/AS_STATS_scommune.R
 scripts/umaydis/AS_STATS_umaydis.R
 ```
 
-## Expression: STAR Alignment, Cuffquant Assembly and Cuffdiff analysis
+# Expression: STAR Alignment, Cuffquant Assembly and Cuffdiff analysis
 
 Futtatunk egy teljes STAR illesztést majd egy Cuffquantot, majd kinyerjük az expressziós értékeket a Cuffdiff segítségével.
 
@@ -595,7 +595,7 @@ Túl sok a short read miatti unmapped MEGOLDÁS -> https://github.com/alexdobin/
 Cufflinks_scripts/umaydis_STAR_CUFF_expression.sh
 ```
 
-## ORF prediction and InterProScan analysis
+# ORF prediction and InterProScan analysis
 
 Prediktáljuk az ORF régiókat TransDecoder segítségével, majd kiemeljük csak a headereket egy külön fájlba (headers.cds, ezt akkor még manuálisan csináltam de mostmár beleépíteném az R scriptbe).
 
@@ -958,7 +958,7 @@ perl -pi -e 's/^>.*::/>/g' umaydis_proteins_all.fasta
 interproscan.sh -i umaydis_proteins_all.fasta -f tsv --iprlookup --goterms -dp
 ```
 
-## AS transcripts table (OUTDATED)
+# AS transcripts table (OUTDATED)
 
 !!!!! FONTOS !!!!!
 
@@ -1032,7 +1032,7 @@ scripts/scommune/AS_TRANSCRIPTS_TABLE_scommune.R
 scripts/umaydis/AS_TRANSCRIPTS_TABLE_umaydis.R
 ```
 
-## Enrichment (OUTDATED)
+# Enrichment (OUTDATED)
 
 Enrichment a GeneCatalog génjeire, mivel a klaszerezés másmilyen ezért ezek a scriptek erősen megkérdőjelezhetőek, frissíteni kell a futtatásokat.
 
@@ -1240,7 +1240,7 @@ umaydis_enrichment_preparations.R
 umaydis_genelvl_enrichment_groups.R
 ```
 
-## MCL Clustering a géncsaládok megkeresésére
+# MCL Clustering a géncsaládok megkeresésére
 
 ```
 # megkeressük a géncsaládokat amikből tovább tudunk haladni a primary transcript megtalálása felé
@@ -1304,7 +1304,7 @@ summary_scripts/umaydis_summary.R
 summary_scripts/summary_all.R
 ```
 
-## Silix/Hifix és enrichment (OUTDATED)
+# Silix/Hifix és enrichment (OUTDATED)
 
 ```
 # a clusterezés megkezdéséhez egy fileba kell olvasztani az összes különálló faj fasta fájlját
