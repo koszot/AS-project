@@ -1222,3 +1222,123 @@ umaydis_enrichment_preparations.R
 
 umaydis_genelvl_enrichment_groups.R
 ```
+
+## MCL Clustering a géncsaládok megkeresésére
+
+```
+# megkeressük a géncsaládokat amikből tovább tudunk haladni a primary transcript megtalálása felé
+
+aampla 			-> 	Auramp1_GeneCatalog_proteins_20160719.aa.fasta
+aostoyae 		->	p3_i2_t47428_Arm_ostoy_v2.prot
+ccinerea 		->	Copci_AmutBmut1_GeneCatalog_proteins_20130522.aa.fasta
+ltigrinus 		->	Sisbr1_GeneCatalog_proteins_20130805.aa.fasta
+pchrysosporium 	->	Phchr2_GeneCatalog_proteins_20131210.aa.fasta
+rmellea			->	Ricmel1_GeneCatalog_proteins_20151108.aa.fasta
+scommune 		->	Schco3_GeneCatalog_proteins_20130812.aa.fasta
+
+# orthomclAdjustFasta
+
+cd compliantFasta
+orthomclAdjustFasta aampla ../aampla.fasta 1
+orthomclAdjustFasta aostoyae ../aostoyae.fasta 1
+orthomclAdjustFasta ccinerea ../ccinerea.fasta 1
+orthomclAdjustFasta ltigrinus ../ltigrinus.fasta 1
+orthomclAdjustFasta pchrysosporium ../pchrysosporium.fasta 1
+orthomclAdjustFasta rmellea ../rmellea.fasta 1
+orthomclAdjustFasta scommune ../scommune.fasta 1
+
+# orthomclFilterFasta
+
+orthomclFilterFasta ./compliantFasta 10 20
+
+# all VS all BLAST
+
+mpiformatdb -N 32 -i goodProteins.fasta -o T
+mv goodProteins.fasta.* ~/share/
+nohup mpirun -n 32 mpiblast -d goodProteins.fasta -i goodProteins.fasta -p blastp -m 8 -o goodProteins_blasted --copy-via=none &
+
+# orthomclBlastParser
+
+orthomclBlastParser goodProteins_blasted ./compliantFasta >> similarSequences.txt
+
+
+# mivel nem stimmelnek a transcript_id-k a protein_id-s baszakodás miatt ezért az egyes fajok dictionaryje alapján át kell alakítani a családokat tartalmazó fájlt
+
+cluster_transformation.R
+```
+
+## Summary (OUTDATED)
+
+```
+# egyenként megcsináljuk a különböző fajok summaryjeit
+
+summary_scripts/aampla_summary.R
+summary_scripts/aostoyae_summary.R
+summary_scripts/ccinerea_AmutBmut_summary.R
+summary_scripts/cneoformans_summary.R
+summary_scripts/ltigrinus_summary.R
+summary_scripts/pchrysosporium_summary.R
+summary_scripts/rmellea_summary.R
+summary_scripts/scommune_summary.R
+summary_scripts/umaydis_summary.R
+
+# összesítjük a summaryket 
+
+summary_scripts/summary_all.R
+```
+
+## Silix/Hifix és enrichment (OUTDATED)
+
+```
+# a clusterezés megkezdéséhez egy fileba kell olvasztani az összes különálló faj fasta fájlját
+# hozzá kell adni az adott faj headerjéhez a faj nevét hogy meg lehessen különböztetni
+
+aampla 			-> 	Auramp1_GeneCatalog_proteins_20160719.aa.fasta
+aostoyae 		->	p3_i2_t47428_Arm_ostoy_v2.prot
+ccinerea 		->	Copci_AmutBmut1_GeneCatalog_proteins_20130522.aa.fasta
+cneoformans		->	Cryptococcus_neoformans_H99.proteins.fasta
+ltigrinus 		->	Sisbr1_GeneCatalog_proteins_20130805.aa.fasta
+pchrysosporium 	->	Phchr2_GeneCatalog_proteins_20131210.aa.fasta
+rmellea			->	Ricmel1_GeneCatalog_proteins_20151108.aa.fasta
+scommune 		->	Schco3_GeneCatalog_proteins_20130812.aa.fasta
+umaydis			->	p3_t237631_Ust_maydi_v2GB.prot
+
+# mpiblast database
+
+mpiformatdb -N 48 -i all_species_protein.fasta -o T
+
+# áthelyezzük a fájlokat ahogy kell
+
+mpirun -n 48 mpiblast -d all_species_protein.fasta -i all_species_protein.fasta -p blastp -m 8 -o all_species_protein_blasted --copy-via=none
+
+# Silix a Hifix-hez
+
+silix all_species_protein.fasta all_species_protein_blasted --net > all_species_protein_SLX.fnodes
+
+# Hifix KITERJESZTÉSNEK .fasta-nak kell lennie!
+
+hifix -t 48 all_species_protein.fasta all_species_protein_blasted.net all_species_protein_SLX.fnodes > all_species_protein_HFX.fnodes
+
+# p3_i2_t47428_Arm_ostoy_v2_ --> semmire csere
+
+# mivel nem stimmelnek a transcript_id-k a protein_id-s baszakodás miatt ezért az egyes fajok dictionaryje alapján át kell alakítani a családokat tartalmazó fájlt
+
+cluster_transformation.R
+
+# fajonkénti enrichment
+
+enrichment_scripts/aampla_genelvl_enrichment_fisher_classic.R
+enrichment_scripts/aostoyae_genelvl_enrichment_fisher_classic.R
+enrichment_scripts/ccinerea_AmutBmut_genelvl_enrichment_fisher_classic.R
+enrichment_scripts/cneoformans_genelvl_enrichment_fisher_classic.R
+enrichment_scripts/ltigrinus_genelvl_enrichment_fisher_classic.R
+enrichment_scripts/pchrysosporium_genelvl_enrichment_fisher_classic.R
+enrichment_scripts/rmellea_genelvl_enrichment_fisher_classic.R
+enrichment_scripts/scommune_genelvl_enrichment_fisher_classic.R
+enrichment_scripts/umaydis_genelvl_enrichment_fisher_classic.R
+
+# összesítés
+
+enrichment_scripts/families_count.R
+enrichment_scripts/GO_count.R
+```
