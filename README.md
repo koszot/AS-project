@@ -1284,7 +1284,7 @@ orthomclBlastParser goodProteins_blasted ./compliantFasta >> similarSequences.tx
 cluster_transformation.R
 ```
 
-## Summary (OUTDATED)
+# Summary (OUTDATED)
 
 ```
 # egyenként megcsináljuk a különböző fajok summaryjeit
