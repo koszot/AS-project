@@ -410,7 +410,7 @@ scripts/scommune/FILTERING_scommune.R
 scripts/umaydis/FILTERING_umaydis.R
 ```
 
-## Fusion correction
+# Fusion correction
 
 Megvizsgáljuk, hogy melyik azok a gének amik fúziósak voltak az eredeti annotációba de már két külön gént alkotnak, majd ezeket a géneket manuális IGV megtekintés után átnevezzük v1, v2 stb.
 
