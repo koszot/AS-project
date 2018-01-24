@@ -1,22 +1,21 @@
-Alternative Splicing Analysis Pipeline
-======================================
+Alternative Splicing Project
+============================
 
 Table of Contents
 =================
 
-   * [Alternative Splicing Analysis Pipeline](#alternative-splicing-analysis-pipeline)
-      * [Preparations](#preparations)
-      * [RRPM: STAR Alignment and Cufflinks Assembly](#rrpm-star-alignment-and-cufflinks-assembly)
-      * [Filtering and Merge](#filtering-and-merge)
-      * [Fusion correction](#fusion-correction)
-      * [Alternative Splicing Statistics](#alternative-splicing-statistics)
-      * [Expression: STAR Alignment, Cuffquant Assembly and Cuffdiff analysis](#expression-star-alignment-cuffquant-assembly-and-cuffdiff-analysis)
-      * [ORF prediction and InterProScan analysis](#orf-prediction-and-interproscan-analysis)
-      * [AS transcripts table (OUTDATED)](#as-transcripts-table-outdated)
-      * [Enrichment (OUTDATED)](#enrichment-outdated)
-      * [MCL Clustering a géncsaládok megkeresésére](#mcl-clustering-a-géncsaládok-megkeresésére)
-      * [Summary (OUTDATED)](#summary-outdated)
-      * [Silix/Hifix és enrichment (OUTDATED)](#silixhifix-és-enrichment-outdated)
+* [Preparations](#preparations)
+* [RRPM: STAR Alignment and Cufflinks Assembly](#rrpm-star-alignment-and-cufflinks-assembly)
+* [Filtering and Merge](#filtering-and-merge)
+* [Fusion correction](#fusion-correction)
+* [Alternative Splicing Statistics](#alternative-splicing-statistics)
+* [Expression: STAR Alignment, Cuffquant Assembly and Cuffdiff analysis](#expression-star-alignment-cuffquant-assembly-and-cuffdiff-analysis)
+* [ORF prediction and InterProScan analysis](#orf-prediction-and-interproscan-analysis)
+* [AS transcripts table (OUTDATED)](#as-transcripts-table-outdated)
+* [Enrichment (OUTDATED)](#enrichment-outdated)
+* [MCL Clustering a géncsaládok megkeresésére](#mcl-clustering-a-géncsaládok-megkeresésére)
+* [Summary (OUTDATED)](#summary-outdated)
+* [Silix/Hifix és enrichment (OUTDATED)](#silixhifix-és-enrichment-outdated)
 
 ## Preparations
 
