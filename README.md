@@ -1,3 +1,6 @@
+Alternative Splicing Analysis Pipeline
+======================================
+
 Table of Contents
 =================
 
@@ -14,8 +17,6 @@ Table of Contents
       * [MCL Clustering a géncsaládok megkeresésére](#mcl-clustering-a-géncsaládok-megkeresésére)
       * [Summary (OUTDATED)](#summary-outdated)
       * [Silix/Hifix és enrichment (OUTDATED)](#silixhifix-és-enrichment-outdated)
-
-# Alternative Splicing Analysis Pipeline
 
 ## Preparations
 
