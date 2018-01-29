@@ -124,64 +124,67 @@ $(document).ready(function () {
 <div id="alternative-splicing-project" class="section level1">
 <h1>Alternative Splicing Project</h1>
 </div>
-<div id="table-of-contents" class="section level1">
-<h1>Table of Contents</h1>
-<ul>
-<li><a href="#preparations">Preparations</a></li>
-<li><a href="#rrpm-star-alignment-and-cufflinks-assembly">RRPM: STAR Alignment and Cufflinks Assembly</a></li>
-<li><a href="#filtering-and-merge">Filtering and Merge</a></li>
-<li><a href="#fusion-correction">Fusion correction</a></li>
-<li><a href="#alternative-splicing-statistics">Alternative Splicing Statistics</a></li>
-<li><a href="#expression-star-alignment-cuffquant-assembly-and-cuffdiff-analysis">Expression: STAR Alignment, Cuffquant Assembly and Cuffdiff analysis</a></li>
-<li><a href="#orf-prediction-and-interproscan-analysis">ORF prediction and InterProScan analysis</a></li>
-<li><a href="#as-transcripts-table-outdated">AS transcripts table (OUTDATED)</a></li>
-<li><a href="#enrichment-outdated">Enrichment (OUTDATED)</a></li>
-<li><a href="#mcl-clustering-a-géncsaládok-megkeresésére">MCL Clustering a géncsaládok megkeresésére</a></li>
-<li><a href="#summary-outdated">Summary (OUTDATED)</a></li>
-<li><a href="#silixhifix-és-enrichment-outdated">Silix/Hifix és enrichment (OUTDATED)</a></li>
-</ul>
-</div>
-<div id="preparations" class="section level1">
-<h1>Preparations</h1>
-<p>A bemeneti annotációs fájlokat át kell alakítani, hogy megfelelőek legyenek a Cufflinks számára illetve elő kell állítani azokat az annotációs és FASTA fájlokat amik az RRPM analízishez szükségesek.</p>
-<div id="armillaria-ostoyae" class="section level3">
-<h3>Armillaria ostoyae</h3>
-<div id="input" class="section level4">
-<h4>Input:</h4>
-<pre><code>- p3_i2_t47428_Arm_ostoy_v2.gff3 : saját annotációs fájl
-- p3_i2_t47428_Arm_ostoy_v2.scaf : saját scaffoldokat tartalmazó FASTA</code></pre>
-<p>Output:</p>
-<p>Steps:</p>
-<p>A GFF3 fájlt átalakítjuk GTF formátumra a további analízishez</p>
-<pre><code>gffread ./aostoyae/genome/p3_i2_t47428_Arm_ostoy_v2.gff3 -T -o ./aostoyae/genome/original.gtf</code></pre>
+<div id="armillaria-ostoyae" class="section level1">
+<h1>Armillaria ostoyae</h1>
+<div id="preparations" class="section level2">
+<h2>Preparations</h2>
+<p>A bemeneti annotációs fájlokat át kell alakítani, hogy megfelelőek legyenek a Cufflinks számára illetve elő kell állítani azokat az annotációs és FASTA fájlokat amik az RRPM analízishez szükségesek. ### Input: - <strong>p3_i2_t47428_Arm_ostoy_v2.gff3</strong> : saját annotációs fájl - <strong>p3_i2_t47428_Arm_ostoy_v2.scaf</strong> : saját scaffoldokat tartalmazó FASTA ### Output: - <strong>aostoyae.gtf</strong> - <strong>aostoyae_onlygene.gtf</strong> - <strong>aostoyae_onlyexon.gtf</strong> - <strong>aostoyae_fixed.gtf</strong> - <strong>aostoyae_genes.fasta</strong> A GFF3 fájlt átalakítjuk GTF formátumra a további analízishez</p>
+<pre><code>gffread p3_i2_t47428_Arm_ostoy_v2.gff3 -T -o aostoyae.gtf</code></pre>
 <p>GTF fájlok elkészítése az RRPM számára</p>
 <pre><code>scripts/aostoyae/PREPARATIONS_aostoyae.R</code></pre>
-<pre><code># GTF fájl bed formátumra alakítása a géneket tartalmazó FASTA fájl elkészítéséhez
-gtf2bed &lt; ./aostoyae/genome/original_onlygene.gtf &gt; ./aostoyae/genome/original_onlygene.gtf.bed
-
-# A géneket tartalmazó FASTA fájl elkészítése
-bedtools getfasta -name -fo ./aostoyae/aostoyae_genome/original_genes.fasta -fi ./aostoyae/aostoyae_genome/p3_i2_t47428_Arm_ostoy_v2.scaf -bed ./aostoyae/aostoyae_genome/original_onlygene.gtf.bed
-
-# A géneket tartalmazó FASTA fájl headerjének a trimmelése
-perl -pi -e 's/::.*//g' ./aostoyae/aostoyae_genome/original_genes.fasta</code></pre>
+<p>GTF fájl bed formátumra alakítása a géneket tartalmazó FASTA fájl elkészítéséhez</p>
+<pre><code>gtf2bed &lt; aostoyae_onlygene.gtf &gt; aostoyae_onlygene.gtf.bed</code></pre>
+<p>A géneket tartalmazó FASTA fájl elkészítése</p>
+<pre><code>bedtools getfasta -name -fo aostoyae_genes.fasta -fi p3_i2_t47428_Arm_ostoy_v2.scaf -bed aostoyae_onlygene.gtf.bed</code></pre>
+<p>A géneket tartalmazó FASTA fájl headerjének a trimmelése</p>
+<pre><code>perl -pi -e 's/::.*//g' aostoyae_genes.fasta</code></pre>
+</div>
+<div id="rrpm-star-alignment-and-cufflinks-assembly" class="section level2">
+<h2>RRPM: STAR Alignment and Cufflinks Assembly</h2>
+<p>Megnézzük milyen hosszúak a gének és az intronok a STAR és a Cufflinks beállításához.</p>
+<p>Elkészítünk egy fájlt ami tartalmazza az összes szükséges scriptet ami az RRPM futtatásához szükséges (STAR, Cufflinks) ### Input: - <strong>aostoyae_genes.fasta</strong> ### Output: - <strong>gene_length</strong></p>
+<pre><code>bioawk -c fastx '{ print $name, length($seq) }' &lt; aostoyae_genes.fasta &gt; gene_length
+scripts/aostoyae/INTRON_LENGTH_aostoyae.R</code></pre>
+<p>A maximális transzkriptméret: 16175 –&gt; max-bundle-length marad 250000</p>
+<p>Intron min: 21 –&gt; –alignIntronMin marad 3</p>
+<p>Intron max: 6767 –&gt; –alignIntronMax marad 30000</p>
+<pre><code>Cufflinks_scripts/aostoyae_STAR_CUFF_RRPM.sh</code></pre>
+</div>
+<div id="filtering-and-merge" class="section level2">
+<h2>Filtering and Merge</h2>
+<p>Az RRPM outputot filterezzük, majd összeillesztjük az eredeti annotációs fájllal, hogy kitöltsük az esetleges hézagokat, ahol nem mutatott expressziós értéket az eredeti annotációban szereplő transzkript.</p>
+<p>A GTF-ekbe átalakítja a start/stop helyeket pl.: 73e3 = 73000, ezeket kiszűrtem kézzel IGV segítségével, a beolvasásnál ha ezeket integerről stringre állítjuk akkor nem írja át, de én nem bajlodtam már vele miután lefutott.</p>
+<p>Lépések: - Expression Filtering: Kitörlünk minden olyan transzkriptet aminek nincsen látható expressziója - Full Read Support Filtering: Kitörülünk minden olyan transzkriptet aminek nincs minden intron-exon junctionjére legalább 1 read - Context Restoration: Visszaállítjuk a GTF fájl start és end pozíciójat az eredeti annotáció pozícióihoz - Strand Filtering: Kitörlünk minden olyan transzkriptet ami nem ugyanazon a stranden van mint az alap gén (ezeket nem tudjuk biztosan megmondani strand specifikus readek nélkül) - Annotation Merge: Összeillesztjük az eredeti annotációs fájlal</p>
+</div>
+<div id="input" class="section level2">
+<h2>### Input:</h2>
+</div>
+<div id="output" class="section level2">
+<h2>### Output:</h2>
+<pre><code>scripts/aostoyae/FILTERING_aostoyae.R</code></pre>
+</div>
+<div id="auriculariopsis-ampla" class="section level2">
+<h2>Auriculariopsis ampla</h2>
+<div id="input-1" class="section level3">
+<h3>Input:</h3>
+</div>
+<div id="output-1" class="section level3">
+<h3>Output:</h3>
+</div>
+<div id="steps" class="section level3">
+<h3>Steps:</h3>
+<p>GTF fájlok elkészítése az RRPM számára</p>
+<pre><code>scripts/aampla/PREPARATIONS_aampla.R</code></pre>
+<p>GTF fájl bed formátumra alakítása a géneket tartalmazó FASTA fájl elkészítéséhez</p>
+<pre><code>gtf2bed &lt; aampla_onlygene.gtf &gt; aampla_onlygene.gtf.bed</code></pre>
+<p>A géneket tartalmazó FASTA fájl elkészítése</p>
+<pre><code>bedtools getfasta -name -fo aampla_genes.fasta -fi Auramp1_AssemblyScaffolds.fasta -bed aampla_onlygene.gtf.bed</code></pre>
+<p>A géneket tartalmazó FASTA fájl headerjének a trimmelése</p>
+<pre><code>perl -pi -e 's/::.*//g' aampla_genes.fasta</code></pre>
 </div>
 </div>
-<div id="auriculariopsis-ampla" class="section level3">
-<h3>Auriculariopsis ampla</h3>
-<pre><code># Az analízishez szükséges GTF fájlok elkészítése
-scripts/aampla/PREPARATIONS_aampla.R
-
-# GTF fájl bed formátumra alakítása a géneket tartalmazó FASTA fájl elkészítéséhez
-gtf2bed &lt; ./aampla/aampla_genome/aampla_onlygene.gtf &gt; ./aampla/aampla_genome/aampla_onlygene.gtf.bed
-
-# A géneket tartalmazó FASTA fájl elkészítése
-bedtools getfasta -name -fo ./aampla/aampla_genome/aampla_genes.fasta -fi ./aampla/aampla_genome/Auramp1_AssemblyScaffolds.fasta -bed ./aampla/aampla_genome/aampla_onlygene.gtf.bed
-
-# A géneket tartalmazó FASTA fájl headerjének a trimmelése
-perl -pi -e 's/::.*//g' ./aampla/aampla_genome/aampla_genes.fasta</code></pre>
-</div>
-<div id="coprinopsis-cinerea" class="section level3">
-<h3>Coprinopsis cinerea</h3>
+<div id="coprinopsis-cinerea" class="section level2">
+<h2>Coprinopsis cinerea</h2>
 <pre><code># Az analízishez szükséges GTF fájlok elkészítése
 scripts/ccinerea/PREPARATIONS_ccinerea.R
 
@@ -193,7 +196,6 @@ bedtools getfasta -name -fo ./ccinerea/ccinerea_AmutBmut_genome/ccinerea_AmutBmu
 
 # A géneket tartalmazó FASTA fájl headerjének a trimmelése
 perl -pi -e 's/::.*//g' ./ccinerea/ccinerea_AmutBmut_genome/ccinerea_AmutBmut_genes.fasta</code></pre>
-</div>
 <div id="cryptococcus-neoformans" class="section level3">
 <h3>Cryptococcus neoformans</h3>
 <p>NEM SAJÁT RNA-SEQ</p>
@@ -291,33 +293,20 @@ bedtools getfasta -name -fo ./umaydis_genome/umaydis_genes.fasta -fi ./umaydis_g
 perl -pi -e 's/::.*//g' ./umaydis_genome/umaydis_genes.fasta</code></pre>
 </div>
 </div>
-<div id="rrpm-star-alignment-and-cufflinks-assembly" class="section level1">
-<h1>RRPM: STAR Alignment and Cufflinks Assembly</h1>
-<p>Megnézzük milyen hosszúak a gének és az intronok a STAR és a Cufflinks beállításához.</p>
-<p>Elkészítünk egy fájlt ami tartalmazza az összes szükséges scriptet ami az RRPM futtatásához szükséges (STAR, Cufflinks)</p>
-<div id="armillaria-ostoyae-1" class="section level3">
-<h3>Armillaria ostoyae</h3>
-<pre><code>bioawk -c fastx '{ print $name, length($seq) }' &lt; original_genes.fasta &gt; gene_length
-
-scripts/aostoyae/INTRON_LENGTH_aostoyae.R
-
-# A maximális transzkriptméret: 16175 --&gt; max-bundle-length marad 250000
-# Intron min: 21 --&gt; --alignIntronMin marad 3 
-# Intron max: 6767 --&gt; --alignIntronMax marad 30000
-
-Cufflinks_scripts/aostoyae_STAR_CUFF_RRPM.sh</code></pre>
-</div>
-<div id="auriculariopsis-ampla-1" class="section level3">
-<h3>Auriculariopsis ampla</h3>
+<div id="auriculariopsis-ampla-updated" class="section level2">
+<h2>Auriculariopsis ampla (UPDATED)</h2>
+<div id="input-2" class="section level3">
+<h3>Input:</h3>
+<ul>
+<li><strong>aampla_genes.fasta</strong> ### Output:</li>
+<li><p><strong>gene_length</strong> ### Steps:</p>
 <pre><code>bioawk -c fastx '{ print $name, length($seq) }' &lt; aampla_genes.fasta &gt; gene_length
-
-scripts/aampla/INTRON_LENGTH_aampla.R
-
-# A maximális transzkriptméret: 23200 --&gt; max-bundle-length marad 250000
-# Intron min: 3 --&gt; --alignIntronMin marad 3 
-# Intron max: 2000 --&gt; --alignIntronMax marad 30000
-
-Cufflinks_scripts/aampla_STAR_CUFF_RRPM.sh</code></pre>
+scripts/aampla/INTRON_LENGTH_aampla.R</code></pre>
+<p>A maximális transzkriptméret: 23200 –&gt; max-bundle-length marad 250000</p></li>
+</ul>
+<p>Intron min: 3 –&gt; –alignIntronMin marad 3</p>
+<p>Intron max: 2000 –&gt; –alignIntronMax marad 30000</p>
+<pre><code>Cufflinks_scripts/aampla_STAR_CUFF_RRPM.sh</code></pre>
 </div>
 <div id="coprinopsis-cinerea-1" class="section level3">
 <h3>Coprinopsis cinerea</h3>
@@ -405,27 +394,9 @@ scripts/umaydis/INTRON_LENGTH_umaydis.R
 Cufflinks_scripts/umaydis_STAR_CUFF_RRPM.sh</code></pre>
 </div>
 </div>
-<div id="filtering-and-merge" class="section level1">
-<h1>Filtering and Merge</h1>
-<p>Az RRPM outputot filterezzük, majd összeillesztjük az eredeti annotációs fájlal, hogy kitöltsük az esetleges hézagokat, ahol nem mutatott expressziós értéket az eredeti annotációban szereplő transzkript.</p>
-<p>A GTF-ekbe átalakítja a start/stop helyeket pl.: 73e3 = 73000, ezeket kiszűrtem kézzel IGV segítségével, a beolvasásnál ha ezeket integerről stringre állítjuk akkor nem írja át, de én nem bajlodtam már vele miután lefutott.</p>
-<p>Lépések: - Expression Filtering: Kitörlünk minden olyan transzkriptet aminek nincsen látható expressziója - Full Read Support Filtering: Kitörülünk minden olyan transzkriptet aminek nincs minden intron-exon junctionjére legalább 1 read - Context Restoration: Visszaállítjuk a GTF fájl start és end pozíciójat az eredeti annotáció pozícióihoz - Strand Filtering: Kitörlünk minden olyan transzkriptet ami nem ugyanazon a stranden van mint az alap gén (ezeket nem tudjuk biztosan megmondani strand specifikus readek nélkül) - Annotation Merge: Összeillesztjük az eredeti annotációs fájlal</p>
-<div id="armillaria-ostoyae-2" class="section level3">
-<h3>Armillaria ostoyae</h3>
-<pre><code>scripts/aostoyae/FILTERING_aostoyae.R
-
-perl -pi -e 's/\&quot;transcript_id \&quot;\&quot;/transcript_id \&quot;/g' RRPM_transcripts.fixed.gtf
-perl -pi -e 's/\&quot;\&quot;; gene_id \&quot;\&quot;/\&quot;; gene_id \&quot;/g' RRPM_transcripts.fixed.gtf
-perl -pi -e 's/\&quot;\&quot;;\&quot;/\&quot;;/g' RRPM_transcripts.fixed.gtf
-
-perl -pi -e 's/\&quot;transcript_id \&quot;\&quot;/transcript_id \&quot;/g' RRPM_transcripts.gtf
-perl -pi -e 's/\&quot;\&quot;; gene_id \&quot;\&quot;/\&quot;; gene_id \&quot;/g' RRPM_transcripts.gtf
-perl -pi -e 's/\&quot;\&quot;;\&quot;/\&quot;;/g' RRPM_transcripts.gtf</code></pre>
-</div>
-<div id="auriculariopsis-ampla-2" class="section level3">
-<h3>Auriculariopsis ampla</h3>
+<div id="auriculariopsis-ampla-1" class="section level2">
+<h2>Auriculariopsis ampla</h2>
 <pre><code>scripts/aampla/FILTERING_aampla.R</code></pre>
-</div>
 <div id="coprinopsis-cinerea-2" class="section level3">
 <h3>Coprinopsis cinerea</h3>
 <pre><code>scripts/ccinerea/FILTERING_ccinerea.R</code></pre>
@@ -455,15 +426,16 @@ perl -pi -e 's/\&quot;\&quot;;\&quot;/\&quot;;/g' RRPM_transcripts.gtf</code></p
 <pre><code>scripts/umaydis/FILTERING_umaydis.R</code></pre>
 </div>
 </div>
+</div>
 <div id="fusion-correction" class="section level1">
 <h1>Fusion correction</h1>
 <p>Megvizsgáljuk, hogy melyik azok a gének amik fúziósak voltak az eredeti annotációba de már két külön gént alkotnak, majd ezeket a géneket manuális IGV megtekintés után átnevezzük v1, v2 stb.</p>
-<div id="armillaria-ostoyae-3" class="section level3">
+<div id="armillaria-ostoyae-1" class="section level3">
 <h3>Armillaria ostoyae</h3>
 <pre><code>scripts/aostoyae/FUSION_FILTER_aostoyae.R
 # c(&quot;AROS_19248&quot;, &quot;AROS_20796&quot;)</code></pre>
 </div>
-<div id="auriculariopsis-ampla-3" class="section level3">
+<div id="auriculariopsis-ampla-2" class="section level3">
 <h3>Auriculariopsis ampla</h3>
 <pre><code>scripts/aampla/FUSION_FILTER_aampla.R
 # c(&quot;411782&quot;, &quot;505059&quot;)</code></pre>
@@ -507,11 +479,11 @@ perl -pi -e 's/\&quot;\&quot;;\&quot;/\&quot;;/g' RRPM_transcripts.gtf</code></p
 <div id="alternative-splicing-statistics" class="section level1">
 <h1>Alternative Splicing Statistics</h1>
 <p>Kinyerjük az alternative splicing statisztikákat majd az output ASpli_binFeatures.log fájlt átnevezzük xy_ASpli_binFeatures.log-ra ahol az xy a faj neve. Ezek a fájlok ezen a néven érhetőek el az adott faj könyvtárába.</p>
-<div id="armillaria-ostoyae-4" class="section level3">
+<div id="armillaria-ostoyae-2" class="section level3">
 <h3>Armillaria ostoyae</h3>
 <pre><code>scripts/aostoyae/AS_STATS_aostoyae.R</code></pre>
 </div>
-<div id="auriculariopsis-ampla-4" class="section level3">
+<div id="auriculariopsis-ampla-3" class="section level3">
 <h3>Auriculariopsis ampla</h3>
 <pre><code>scripts/aampla/AS_STATS_aampla.R</code></pre>
 </div>
@@ -547,11 +519,11 @@ perl -pi -e 's/\&quot;\&quot;;\&quot;/\&quot;;/g' RRPM_transcripts.gtf</code></p
 <div id="expression-star-alignment-cuffquant-assembly-and-cuffdiff-analysis" class="section level1">
 <h1>Expression: STAR Alignment, Cuffquant Assembly and Cuffdiff analysis</h1>
 <p>Futtatunk egy teljes STAR illesztést majd egy Cuffquantot, majd kinyerjük az expressziós értékeket a Cuffdiff segítségével.</p>
-<div id="armillaria-ostoyae-5" class="section level3">
+<div id="armillaria-ostoyae-3" class="section level3">
 <h3>Armillaria ostoyae</h3>
 <pre><code>Cufflinks_scripts/aostoyae_STAR_CUFF_expression.sh</code></pre>
 </div>
-<div id="auriculariopsis-ampla-5" class="section level3">
+<div id="auriculariopsis-ampla-4" class="section level3">
 <h3>Auriculariopsis ampla</h3>
 <pre><code>Cufflinks_scripts/aampla_STAR_CUFF_expression.sh</code></pre>
 </div>
@@ -589,7 +561,7 @@ perl -pi -e 's/\&quot;\&quot;;\&quot;/\&quot;;/g' RRPM_transcripts.gtf</code></p
 <h1>ORF prediction and InterProScan analysis</h1>
 <p>Prediktáljuk az ORF régiókat TransDecoder segítségével, majd kiemeljük csak a headereket egy külön fájlba (headers.cds, ezt akkor még manuálisan csináltam de mostmár beleépíteném az R scriptbe).</p>
 <p>Egy R script segítségével kiszedjük a longest ORF-hez tartalmazó headereket majd ezzel megszűrjük a fehérjeszekvenciákat tartalmazó fájlt, végül átalakítjuk úgy a FASTA-fájlt, hogy az InterProScan számára megfelelő legyen. (Elég körülményesen oldottam ezt meg de működik, nyilván mostmár máshogy írnám még ezt a részt egy R scriptbe)</p>
-<div id="armillaria-ostoyae-6" class="section level3">
+<div id="armillaria-ostoyae-4" class="section level3">
 <h3>Armillaria ostoyae</h3>
 <pre><code># ORF régiók prediktálása
 mkdir ~/Desktop/alternative_splicing/aostoyae/aostoyae_enrichment_analysis
@@ -624,7 +596,7 @@ perl -pi -e 's/::g\..*$//g' aostoyae_proteins_all.fasta
 perl -pi -e 's/^&gt;.*::/&gt;/g' aostoyae_proteins_all.fasta</code></pre>
 <pre><code>./interproscan.sh -i aostoyae_proteins_all.fasta -f tsv --iprlookup --goterms</code></pre>
 </div>
-<div id="auriculariopsis-ampla-6" class="section level3">
+<div id="auriculariopsis-ampla-5" class="section level3">
 <h3>Auriculariopsis ampla</h3>
 <pre><code># ORF régiók prediktálása
 mkdir ~/Desktop/alternative_splicing/aampla/aampla_enrichment_analysis
@@ -909,11 +881,11 @@ perl -pi -e 's/^&gt;.*::/&gt;/g' umaydis_proteins_all.fasta</code></pre>
 <p>Ez a TSV fájl tartalmazza az AS-ben résztvevő szűrt transcripteket.</p>
 <p>A táblázat csak olyan transzkriptt tartalmaz: - Aminek az anyagénje részt vesz alternative splicingban - Aminek az anyagénje legalább az egyik fejlődési fázsiban eléri a 2 FPKM-es értéket - Ami legalább egy egyik fázisban eléri vagy meghaladja az anyagén adott fázisban lévő teljes expressziós értékének legalább 10%-át</p>
 <p>A táblázat tartalmazza a következő adatokat: - Expressziós értékek - Fold Change értékek - A CDS régiókra vonatkozó értékek és összehasonlítások - Domain összetételek és azok összehasonlítása - GO annotációk</p>
-<div id="armillaria-ostoyae-7" class="section level3">
+<div id="armillaria-ostoyae-5" class="section level3">
 <h3>Armillaria ostoyae</h3>
 <pre><code>scripts/aostoyae/AS_TRANSCRIPTS_TABLE_aostoyae.R</code></pre>
 </div>
-<div id="auriculariopsis-ampla-7" class="section level3">
+<div id="auriculariopsis-ampla-6" class="section level3">
 <h3>Auriculariopsis ampla</h3>
 <pre><code>scripts/aampla/AS_TRANSCRIPTS_TABLE_aampla.R</code></pre>
 </div>
@@ -949,7 +921,7 @@ perl -pi -e 's/^&gt;.*::/&gt;/g' umaydis_proteins_all.fasta</code></pre>
 <div id="enrichment-outdated" class="section level1">
 <h1>Enrichment (OUTDATED)</h1>
 <p>Enrichment a GeneCatalog génjeire, mivel a klaszerezés másmilyen ezért ezek a scriptek erősen megkérdőjelezhetőek, frissíteni kell a futtatásokat.</p>
-<div id="armillaria-ostoyae-8" class="section level3">
+<div id="armillaria-ostoyae-6" class="section level3">
 <h3>Armillaria ostoyae</h3>
 <pre><code>interproscan.sh -i p3_i2_t47428_Arm_ostoy_v2.prot -f tsv --iprlookup --goterms
 
@@ -957,7 +929,7 @@ aostoyae_enrichment_preparations.R
 
 aostoyae_genelvl_enrichment_groups.R</code></pre>
 </div>
-<div id="auriculariopsis-ampla-8" class="section level3">
+<div id="auriculariopsis-ampla-7" class="section level3">
 <h3>Auriculariopsis ampla</h3>
 <pre><code># *-ok törlése mivel az InterProScan nem tudja értelmezni
 

@@ -1,10 +1,12 @@
 Alternative Splicing Project
 ============================
 
-# Preparations
-A bemeneti annotációs fájlokat át kell alakítani, hogy megfelelőek legyenek a Cufflinks számára illetve elő kell állítani azokat az annotációs és FASTA fájlokat amik az RRPM analízishez szükségesek. 
+# Armillaria ostoyae
+## RNA-seq files
+## Preparations
+FONTOS: A scriptek nem lettek frissítve csak az output fájlok elnevezései mivel ez volt az egyik első leelemzett genome, és az elnevezési metodika a későbbi fajoknál jött be, ezért a scriptek újrafuttatás esetén átnézésre/átalakításra szorulnak, hogy az újabb fajok scriptjeihez hasonlóak legyenek.
 
-## Armillaria ostoyae (UPDATED)
+A bemeneti annotációs fájlokat át kell alakítani, hogy megfelelőek legyenek a Cufflinks számára illetve elő kell állítani azokat az annotációs és FASTA fájlokat amik az RRPM analízishez szükségesek. 
 ### Input:
 - __p3_i2_t47428_Arm_ostoy_v2.gff3__ : saját annotációs fájl
 - __p3_i2_t47428_Arm_ostoy_v2.scaf__ : saját scaffoldokat tartalmazó FASTA
@@ -14,7 +16,6 @@ A bemeneti annotációs fájlokat át kell alakítani, hogy megfelelőek legyene
 - __aostoyae_onlyexon.gtf__
 - __aostoyae_fixed.gtf__
 - __aostoyae_genes.fasta__
-### Steps:
 A GFF3 fájlt átalakítjuk GTF formátumra a további analízishez
 ```
 gffread p3_i2_t47428_Arm_ostoy_v2.gff3 -T -o aostoyae.gtf
@@ -35,6 +36,65 @@ A géneket tartalmazó FASTA fájl headerjének a trimmelése
 ```
 perl -pi -e 's/::.*//g' aostoyae_genes.fasta
 ```
+## RRPM: STAR Alignment and Cufflinks Assembly
+Megnézzük milyen hosszúak a gének és az intronok a STAR és a Cufflinks beállításához.
+
+Elkészítünk egy fájlt ami tartalmazza az összes szükséges scriptet ami az RRPM futtatásához szükséges (STAR, Cufflinks)
+### Input:
+- __aostoyae_genes.fasta__
+### Output:
+- __gene_length__
+```
+bioawk -c fastx '{ print $name, length($seq) }' < aostoyae_genes.fasta > gene_length
+scripts/aostoyae/INTRON_LENGTH_aostoyae.R
+```
+A maximális transzkriptméret: 16175 --> max-bundle-length marad 250000
+
+Intron min: 21 --> --alignIntronMin marad 3 
+
+Intron max: 6767 --> --alignIntronMax marad 30000
+```
+Cufflinks_scripts/aostoyae_STAR_CUFF_RRPM.sh
+```
+## Filtering and Merge
+Az RRPM outputot filterezzük, majd összeillesztjük az eredeti annotációs fájllal, hogy kitöltsük az esetleges hézagokat, ahol nem mutatott expressziós értéket az eredeti annotációban szereplő transzkript.
+
+A GTF-ekbe átalakítja a start/stop helyeket pl.: 73e3 = 73000, ezeket kiszűrtem kézzel IGV segítségével, a beolvasásnál ha ezeket integerről stringre állítjuk akkor nem írja át, de én nem bajlodtam már vele miután lefutott.
+
+Lépések:
+- Expression Filtering: Kitörlünk minden olyan transzkriptet aminek nincsen látható expressziója
+- Full Read Support Filtering: Kitörülünk minden olyan transzkriptet aminek nincs minden intron-exon junctionjére legalább 1 read
+- Context Restoration: Visszaállítjuk a GTF fájl start és end pozíciójat az eredeti annotáció pozícióihoz
+- Strand Filtering: Kitörlünk minden olyan transzkriptet ami nem ugyanazon a stranden van mint az alap gén (ezeket nem tudjuk biztosan megmondani strand specifikus readek nélkül)
+- Annotation Merge: Összeillesztjük az eredeti annotációs fájlal
+
+### Input:
+- __aostoyae_onlygene.gtf__
+- __transcripts.gtf__ : RRPM Cufflinks assembly output file
+### Output:
+- __aostoyae_RRPM_transcripts.gtf__ : Az újonnan felfedezett transzkripteket tartalmazó GTF
+- __aostoyae_AS_annotation.gtf__ : Az eredeti annotációval történő összemergeelés, hogy az esetlegesen nem detektált gének is bennelegyenek az annotációs fájlban.
+```
+scripts/aostoyae/FILTERING_aostoyae.R
+```
+## Fusion correction
+### Input:
+- __isoforms.fpkm_tracking__ : Az RRPM Cufflinks output izoforms FPKM értékeket tartalmazó fájlja
+- __aostoyae_AS_annotation.gtf__
+### Output:
+- Összesen 2 fúziós gén detektálva : __AROS_19248__, __AROS_20796__
+Megvizsgáljuk, hogy melyek azok a gének amik fúziósak voltak az eredeti annotációba de már két külön gént alkotnak, majd ezeket a géneket manuális IGV megtekintés után átnevezzük v1, v2 satöbbire.
+```
+scripts/aostoyae/FUSION_FILTER_aostoyae.R
+```
+
+
+
+
+
+
+
+
 
 ## Auriculariopsis ampla
 
@@ -60,7 +120,7 @@ A géneket tartalmazó FASTA fájl headerjének a trimmelése
 perl -pi -e 's/::.*//g' aampla_genes.fasta
 ```
 
-### Coprinopsis cinerea
+## Coprinopsis cinerea
 
 ```
 # Az analízishez szükséges GTF fájlok elkészítése
@@ -205,40 +265,24 @@ bedtools getfasta -name -fo ./umaydis_genome/umaydis_genes.fasta -fi ./umaydis_g
 perl -pi -e 's/::.*//g' ./umaydis_genome/umaydis_genes.fasta
 ```
 
-# RRPM: STAR Alignment and Cufflinks Assembly
 
-Megnézzük milyen hosszúak a gének és az intronok a STAR és a Cufflinks beállításához.
 
-Elkészítünk egy fájlt ami tartalmazza az összes szükséges scriptet ami az RRPM futtatásához szükséges (STAR, Cufflinks)
-
-### Armillaria ostoyae (UPDATE)
+## Auriculariopsis ampla (UPDATED)
 ### Input:
-- __aostoyae_genes.fasta__
+- __aampla_genes.fasta__
 ### Output:
 - __gene_length__
 ### Steps:
 ```
-bioawk -c fastx '{ print $name, length($seq) }' < aostoyae_genes.fasta > gene_length
-scripts/aostoyae/INTRON_LENGTH_aostoyae.R
-```
-A maximális transzkriptméret: 16175 --> max-bundle-length marad 250000
-Intron min: 21 --> --alignIntronMin marad 3 
-Intron max: 6767 --> --alignIntronMax marad 30000
-```
-Cufflinks_scripts/aostoyae_STAR_CUFF_RRPM.sh
-```
-
-### Auriculariopsis ampla
-
-```
 bioawk -c fastx '{ print $name, length($seq) }' < aampla_genes.fasta > gene_length
-
 scripts/aampla/INTRON_LENGTH_aampla.R
+````
+A maximális transzkriptméret: 23200 --> max-bundle-length marad 250000
 
-# A maximális transzkriptméret: 23200 --> max-bundle-length marad 250000
-# Intron min: 3 --> --alignIntronMin marad 3 
-# Intron max: 2000 --> --alignIntronMax marad 30000
+Intron min: 3 --> --alignIntronMin marad 3 
 
+Intron max: 2000 --> --alignIntronMax marad 30000
+```
 Cufflinks_scripts/aampla_STAR_CUFF_RRPM.sh
 ```
 
@@ -342,34 +386,9 @@ scripts/umaydis/INTRON_LENGTH_umaydis.R
 Cufflinks_scripts/umaydis_STAR_CUFF_RRPM.sh
 ```
 
-# Filtering and Merge
 
-Az RRPM outputot filterezzük, majd összeillesztjük az eredeti annotációs fájlal, hogy kitöltsük az esetleges hézagokat, ahol nem mutatott expressziós értéket az eredeti annotációban szereplő transzkript.
 
-A GTF-ekbe átalakítja a start/stop helyeket pl.: 73e3 = 73000, ezeket kiszűrtem kézzel IGV segítségével, a beolvasásnál ha ezeket integerről stringre állítjuk akkor nem írja át, de én nem bajlodtam már vele miután lefutott.
-
-Lépések:
-- Expression Filtering: Kitörlünk minden olyan transzkriptet aminek nincsen látható expressziója
-- Full Read Support Filtering: Kitörülünk minden olyan transzkriptet aminek nincs minden intron-exon junctionjére legalább 1 read
-- Context Restoration: Visszaállítjuk a GTF fájl start és end pozíciójat az eredeti annotáció pozícióihoz
-- Strand Filtering: Kitörlünk minden olyan transzkriptet ami nem ugyanazon a stranden van mint az alap gén (ezeket nem tudjuk biztosan megmondani strand specifikus readek nélkül)
-- Annotation Merge: Összeillesztjük az eredeti annotációs fájlal
-
-### Armillaria ostoyae
-
-```
-scripts/aostoyae/FILTERING_aostoyae.R
-
-perl -pi -e 's/\"transcript_id \"\"/transcript_id \"/g' RRPM_transcripts.fixed.gtf
-perl -pi -e 's/\"\"; gene_id \"\"/\"; gene_id \"/g' RRPM_transcripts.fixed.gtf
-perl -pi -e 's/\"\";\"/\";/g' RRPM_transcripts.fixed.gtf
-
-perl -pi -e 's/\"transcript_id \"\"/transcript_id \"/g' RRPM_transcripts.gtf
-perl -pi -e 's/\"\"; gene_id \"\"/\"; gene_id \"/g' RRPM_transcripts.gtf
-perl -pi -e 's/\"\";\"/\";/g' RRPM_transcripts.gtf
-```
-
-### Auriculariopsis ampla
+## Auriculariopsis ampla
 
 ```
 scripts/aampla/FILTERING_aampla.R
@@ -417,16 +436,7 @@ scripts/scommune/FILTERING_scommune.R
 scripts/umaydis/FILTERING_umaydis.R
 ```
 
-# Fusion correction
 
-Megvizsgáljuk, hogy melyik azok a gének amik fúziósak voltak az eredeti annotációba de már két külön gént alkotnak, majd ezeket a géneket manuális IGV megtekintés után átnevezzük v1, v2 stb.
-
-### Armillaria ostoyae
-
-```
-scripts/aostoyae/FUSION_FILTER_aostoyae.R
-# c("AROS_19248", "AROS_20796")
-```
 
 ### Auriculariopsis ampla
 
