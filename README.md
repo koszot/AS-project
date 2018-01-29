@@ -21,7 +21,7 @@ Table of Contents
 
 A bemeneti annotációs fájlokat át kell alakítani, hogy megfelelőek legyenek a Cufflinks számára illetve elő kell állítani azokat az annotációs és FASTA fájlokat amik az RRPM analízishez szükségesek. 
 
-### Armillaria ostoyae
+## Armillaria ostoyae
 
 #### Input:
 - p3_i2_t47428_Arm_ostoy_v2.gff3 : saját annotációs fájl
