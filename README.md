@@ -51,20 +51,28 @@ A géneket tartalmazó FASTA fájl headerjének a trimmelése
 perl -pi -e 's/::.*//g' original_genes.fasta
 ```
 
-### Auriculariopsis ampla
+## Auriculariopsis ampla
 
+### Input:
+
+### Output:
+
+### Steps:
+GTF fájlok elkészítése az RRPM számára
 ```
-# Az analízishez szükséges GTF fájlok elkészítése
 scripts/aampla/PREPARATIONS_aampla.R
-
-# GTF fájl bed formátumra alakítása a géneket tartalmazó FASTA fájl elkészítéséhez
-gtf2bed < ./aampla/aampla_genome/aampla_onlygene.gtf > ./aampla/aampla_genome/aampla_onlygene.gtf.bed
-
-# A géneket tartalmazó FASTA fájl elkészítése
-bedtools getfasta -name -fo ./aampla/aampla_genome/aampla_genes.fasta -fi ./aampla/aampla_genome/Auramp1_AssemblyScaffolds.fasta -bed ./aampla/aampla_genome/aampla_onlygene.gtf.bed
-
-# A géneket tartalmazó FASTA fájl headerjének a trimmelése
-perl -pi -e 's/::.*//g' ./aampla/aampla_genome/aampla_genes.fasta
+```
+GTF fájl bed formátumra alakítása a géneket tartalmazó FASTA fájl elkészítéséhez
+```
+gtf2bed < aampla_onlygene.gtf > aampla_onlygene.gtf.bed
+```
+A géneket tartalmazó FASTA fájl elkészítése
+```
+bedtools getfasta -name -fo aampla_genes.fasta -fi Auramp1_AssemblyScaffolds.fasta -bed aampla_onlygene.gtf.bed
+```
+A géneket tartalmazó FASTA fájl headerjének a trimmelése
+```
+perl -pi -e 's/::.*//g' aampla_genes.fasta
 ```
 
 ### Coprinopsis cinerea
