@@ -1,38 +1,23 @@
 Alternative Splicing Project
 ============================
 
-Table of Contents
-=================
-
-* [Preparations](#preparations)
-* [RRPM: STAR Alignment and Cufflinks Assembly](#rrpm-star-alignment-and-cufflinks-assembly)
-* [Filtering and Merge](#filtering-and-merge)
-* [Fusion correction](#fusion-correction)
-* [Alternative Splicing Statistics](#alternative-splicing-statistics)
-* [Expression: STAR Alignment, Cuffquant Assembly and Cuffdiff analysis](#expression-star-alignment-cuffquant-assembly-and-cuffdiff-analysis)
-* [ORF prediction and InterProScan analysis](#orf-prediction-and-interproscan-analysis)
-* [AS transcripts table (OUTDATED)](#as-transcripts-table-outdated)
-* [Enrichment (OUTDATED)](#enrichment-outdated)
-* [MCL Clustering a géncsaládok megkeresésére](#mcl-clustering-a-géncsaládok-megkeresésére)
-* [Summary (OUTDATED)](#summary-outdated)
-* [Silix/Hifix és enrichment (OUTDATED)](#silixhifix-és-enrichment-outdated)
-
 # Preparations
-
 A bemeneti annotációs fájlokat át kell alakítani, hogy megfelelőek legyenek a Cufflinks számára illetve elő kell állítani azokat az annotációs és FASTA fájlokat amik az RRPM analízishez szükségesek. 
 
-## Armillaria ostoyae
-
+## Armillaria ostoyae (UPDATED)
 ### Input:
 - __p3_i2_t47428_Arm_ostoy_v2.gff3__ : saját annotációs fájl
 - __p3_i2_t47428_Arm_ostoy_v2.scaf__ : saját scaffoldokat tartalmazó FASTA
-
 ### Output:
-
+- __aostoyae.gtf__
+- __aostoyae_onlygene.gtf__
+- __aostoyae_onlyexon.gtf__
+- __aostoyae_fixed.gtf__
+- __aostoyae_genes.fasta__
 ### Steps:
 A GFF3 fájlt átalakítjuk GTF formátumra a további analízishez
 ```
-gffread p3_i2_t47428_Arm_ostoy_v2.gff3 -T -o original.gtf
+gffread p3_i2_t47428_Arm_ostoy_v2.gff3 -T -o aostoyae.gtf
 ```
 GTF fájlok elkészítése az RRPM számára
 ```
@@ -40,15 +25,15 @@ scripts/aostoyae/PREPARATIONS_aostoyae.R
 ```
 GTF fájl bed formátumra alakítása a géneket tartalmazó FASTA fájl elkészítéséhez
 ```
-gtf2bed < original_onlygene.gtf > original_onlygene.gtf.bed
+gtf2bed < aostoyae_onlygene.gtf > aostoyae_onlygene.gtf.bed
 ```
 A géneket tartalmazó FASTA fájl elkészítése
 ```
-bedtools getfasta -name -fo original_genes.fasta -fi p3_i2_t47428_Arm_ostoy_v2.scaf -bed original_onlygene.gtf.bed
+bedtools getfasta -name -fo aostoyae_genes.fasta -fi p3_i2_t47428_Arm_ostoy_v2.scaf -bed aostoyae_onlygene.gtf.bed
 ```
 A géneket tartalmazó FASTA fájl headerjének a trimmelése
 ```
-perl -pi -e 's/::.*//g' original_genes.fasta
+perl -pi -e 's/::.*//g' aostoyae_genes.fasta
 ```
 
 ## Auriculariopsis ampla
@@ -226,17 +211,20 @@ Megnézzük milyen hosszúak a gének és az intronok a STAR és a Cufflinks be�
 
 Elkészítünk egy fájlt ami tartalmazza az összes szükséges scriptet ami az RRPM futtatásához szükséges (STAR, Cufflinks)
 
-### Armillaria ostoyae
-
+### Armillaria ostoyae (UPDATE)
+### Input:
+- __aostoyae_genes.fasta__
+### Output:
+- __gene_length__
+### Steps:
 ```
-bioawk -c fastx '{ print $name, length($seq) }' < original_genes.fasta > gene_length
-
+bioawk -c fastx '{ print $name, length($seq) }' < aostoyae_genes.fasta > gene_length
 scripts/aostoyae/INTRON_LENGTH_aostoyae.R
-
-# A maximális transzkriptméret: 16175 --> max-bundle-length marad 250000
-# Intron min: 21 --> --alignIntronMin marad 3 
-# Intron max: 6767 --> --alignIntronMax marad 30000
-
+```
+A maximális transzkriptméret: 16175 --> max-bundle-length marad 250000
+Intron min: 21 --> --alignIntronMin marad 3 
+Intron max: 6767 --> --alignIntronMax marad 30000
+```
 Cufflinks_scripts/aostoyae_STAR_CUFF_RRPM.sh
 ```
 
