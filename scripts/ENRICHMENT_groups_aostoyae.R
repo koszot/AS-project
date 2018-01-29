@@ -3,9 +3,9 @@ library(readr)
 library(stringr)
 library(tidyr)
 
-setwd("~/Desktop/alternative_splicing/aostoyae/")
+setwd("~/Desktop/MTA/AS_project/FILES_aostoyae/")
 
-isoforms.fpkm <- read_tsv("aostoyae_CUFFdiff/isoforms.fpkm_tracking")     # betöltjük az isoform FPKM táblát
+isoforms.fpkm <- read_tsv("/isoforms.fpkm_tracking")     # betöltjük az isoform FPKM táblát
 genes.fpkm <- read_tsv("aostoyae_CUFFdiff/genes.fpkm_tracking")           # betöltjük az genes FPKM táblát
 
 isoforms.fpkm <- isoforms.fpkm %>%

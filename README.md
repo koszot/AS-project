@@ -44,6 +44,7 @@ Elkészítünk egy fájlt ami tartalmazza az összes szükséges scriptet ami az
 - __aostoyae_genes.fasta__
 ### Output:
 - __gene_length__
+- A __Cufflinks__ __outputja__ ami tartalmazza az RRPM analízis fájljait
 ```
 bioawk -c fastx '{ print $name, length($seq) }' < aostoyae_genes.fasta > gene_length
 INTRON_LENGTH_aostoyae.R
@@ -92,24 +93,27 @@ Megvizsgáljuk, hogy melyek azok a gének amik fúziósak voltak az eredeti anno
 FUSION_FILTER_aostoyae.R
 ```
 ## Expression: STAR Alignment, Cuffquant Assembly and Cuffdiff analysis
-Futtatunk egy teljes STAR illesztést majd egy Cuffquantot, majd kinyerjük az expressziós értékeket a Cuffdiff segítségével.
+### Output:
+- A __CuffDiff__ __output__ fájljai az expreszziós analízisből
+Futtatunk egy teljes STAR illesztést majd egy Cuffquantot, majd kinyerjük az expressziós értékeket a CuffDiff segítségével.
 ```
 aostoyae_STAR_CUFF_expression.sh
 ```
-## ORF prediction and InterProScan analysis
+## ORF prediction
 ### Input:
 - __aostoyae_AS_annotation.gtf__
 - __p3_i2_t47428_Arm_ostoy_v2.scaf__
 ### Output:
-- __aostoyae_proteins_all.fasta__ : Minden transzkriptre a leghosszabb ORF-ek alapján prediktált proteinek
-- __aostoyae_proteins_all.fasta.tsv__ : Minden transzkriptre a leghosszabb ORF-ek alapján prediktált proteinhez tartozó InterProScan domainek
+- __aostoyae_transcripts.fasta__ : A TransDecoder outputja ami tartalmazza az összes transzkript szekvenciáját fasta formátumban
+- __longest_orfs.cds__ : A TransDecoder outputja ami tartalmazza az összes prediktált ORF cds régióját
+- __longest_orfs.pep__ : A TransDecoder outputja ami tartalmazza az összes prediktált ORF proteinjeit
 
 Prediktáljuk az ORF régiókat TransDecoder segítségével.
 ```
 ~/TransDecoder-3.0.1/util/cufflinks_gtf_genome_to_cdna_fasta.pl aostoyae_AS_annotation.gtf p3_i2_t47428_Arm_ostoy_v2.scaf > aostoyae_transcripts.fasta
 TransDecoder.LongOrfs -m 20 -S -t aostoyae_transcripts.fasta
 ```
-Majd kiemeljük csak a headereket egy külön fájlba (headers.cds, ezt akkor még manuálisan csináltam de mostmár beleépíteném az R scriptbe). Majd regexp-el átalakítjuk a headereket, hogy fel tudja őket dolgozni az R script.
+Majd kiemeljük csak a headereket a longest_orfs.cds fájlból egy külön fájlba (headers.cds, ezt akkor még manuálisan csináltam de mostmár beleépíteném az R scriptbe). Majd regexp-el átalakítjuk a headereket, hogy fel tudja őket dolgozni az R script.
 ```
 perl -pi -e 's/>//g' headers.cds
 perl -pi -e 's/ /\t/g' headers.cds
@@ -138,10 +142,45 @@ Egy kis regexp átalakítás az áttekinthetőségért
 perl -pi -e 's/::g\..*$//g' aostoyae_proteins_all.fasta
 perl -pi -e 's/^>.*::/>/g' aostoyae_proteins_all.fasta
 ```
-Majd pedig lefuttatjuk at InterProScan-t
+
+## InterProScan analysis
+### Input:
+- __aostoyae_proteins_all.fasta__ : Minden transzkriptre a leghosszabb ORF-ek alapján prediktált proteinek
+### Output:
+- __aostoyae_proteins_all.fasta.tsv__ : Minden transzkriptre a leghosszabb ORF-ek alapján prediktált proteinhez tartozó InterProScan domainek
+
+Lefuttatjuk at InterProScan-t.
 ```
 interproscan.sh -i aostoyae_proteins_all.fasta -f tsv --iprlookup --goterms
 ```
+## Enrichment
+### Input:
+- __p3_i2_t47428_Arm_ostoy_v2.prot__
+- isoforms.fpkm_tracking
+- genes.fpkm_tracking
+### Output:
+- __p3_i2_t47428_Arm_ostoy_v2.prot.tsv__
+- __aostoyae_GO_dict.tsv__ : A géneket és a GO-kat tartalmazó táblázat
+
+Lefuttatjuk az InterProScan-t a GeneCatalog génjeire.
+```
+interproscan.sh -i p3_i2_t47428_Arm_ostoy_v2.prot -f tsv --iprlookup --goterms
+```
+Készítünk egy táblázatot ami tartalmazza a génekhez tartozó GO azonosítókat az enrichment számára.
+```
+ENRICHMENT_preparations_aostoyae.R
+```
+FONTOS: A következő két scriptet újra kell futtatni mert megváltozott a definíciója a DEVREG-nek és az AS-nek is.
+```
+ENRICHMENT_groups_aostoyae.R
+ENRICHMENT_fisher_classic_aostoyae.R
+```
+
+
+
+
+
+
 
 
 
@@ -920,19 +959,7 @@ interproscan.sh -i umaydis_proteins_all.fasta -f tsv --iprlookup --goterms -dp
 ```
 
 
-# Enrichment (OUTDATED)
 
-Enrichment a GeneCatalog génjeire, mivel a klaszerezés másmilyen ezért ezek a scriptek erősen megkérdőjelezhetőek, frissíteni kell a futtatásokat.
-
-### Armillaria ostoyae
-
-```
-interproscan.sh -i p3_i2_t47428_Arm_ostoy_v2.prot -f tsv --iprlookup --goterms
-
-aostoyae_enrichment_preparations.R
-
-aostoyae_genelvl_enrichment_groups.R
-```
 
 ### Auriculariopsis ampla
 
