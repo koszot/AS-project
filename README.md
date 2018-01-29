@@ -23,13 +23,13 @@ A bemeneti annotációs fájlokat át kell alakítani, hogy megfelelőek legyene
 
 ## Armillaria ostoyae
 
-#### Input:
-- p3_i2_t47428_Arm_ostoy_v2.gff3 : saját annotációs fájl
-- p3_i2_t47428_Arm_ostoy_v2.scaf : saját scaffoldokat tartalmazó FASTA
+### Input:
+- __p3_i2_t47428_Arm_ostoy_v2.gff3__ : saját annotációs fájl
+- __p3_i2_t47428_Arm_ostoy_v2.scaf__ : saját scaffoldokat tartalmazó FASTA
 
-Output:
+### Output:
 
-Steps:
+### Steps:
 
 A GFF3 fájlt átalakítjuk GTF formátumra a további analízishez
 ```
