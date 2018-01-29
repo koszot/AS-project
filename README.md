@@ -19,17 +19,29 @@ Table of Contents
 
 # Preparations
 
-A bemeneti annotációs fájlokat át kell alakítani, hogy megfelelőek legyenek a Cufflinks számára illetve elő kell állítani azokat az annotációs és FASTA fájlokat amik az RRPM analízishez szükségesek.
+A bemeneti annotációs fájlokat át kell alakítani, hogy megfelelőek legyenek a Cufflinks számára illetve elő kell állítani azokat az annotációs és FASTA fájlokat amik az RRPM analízishez szükségesek. 
 
 ### Armillaria ostoyae
 
+#### Input:
+- p3_i2_t47428_Arm_ostoy_v2.gff3 : saját annotációs fájl
+- p3_i2_t47428_Arm_ostoy_v2.scaf : saját scaffoldokat tartalmazó FASTA
+
+Output:
+
+Steps:
+
+A GFF3 fájlt átalakítjuk GTF formátumra a további analízishez
 ```
-# A GFF3 fájl átalakítása GTF formátumra
 gffread ./aostoyae/genome/p3_i2_t47428_Arm_ostoy_v2.gff3 -T -o ./aostoyae/genome/original.gtf
+```
 
-# Az analízishez szükséges GTF fájlok elkészítése
+GTF fájlok elkészítése az RRPM számára
+```
 scripts/aostoyae/PREPARATIONS_aostoyae.R
+```
 
+```
 # GTF fájl bed formátumra alakítása a géneket tartalmazó FASTA fájl elkészítéséhez
 gtf2bed < ./aostoyae/genome/original_onlygene.gtf > ./aostoyae/genome/original_onlygene.gtf.bed
 
@@ -1282,26 +1294,6 @@ orthomclBlastParser goodProteins_blasted ./compliantFasta >> similarSequences.tx
 # mivel nem stimmelnek a transcript_id-k a protein_id-s baszakodás miatt ezért az egyes fajok dictionaryje alapján át kell alakítani a családokat tartalmazó fájlt
 
 cluster_transformation.R
-```
-
-# Summary (OUTDATED)
-
-```
-# egyenként megcsináljuk a különböző fajok summaryjeit
-
-summary_scripts/aampla_summary.R
-summary_scripts/aostoyae_summary.R
-summary_scripts/ccinerea_AmutBmut_summary.R
-summary_scripts/cneoformans_summary.R
-summary_scripts/ltigrinus_summary.R
-summary_scripts/pchrysosporium_summary.R
-summary_scripts/rmellea_summary.R
-summary_scripts/scommune_summary.R
-summary_scripts/umaydis_summary.R
-
-# összesítjük a summaryket 
-
-summary_scripts/summary_all.R
 ```
 
 # Silix/Hifix és enrichment (OUTDATED)
