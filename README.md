@@ -59,7 +59,22 @@ Intron max: 6767 --> --alignIntronMax marad 30000
 
 Lefuttatjuk az RRPM analízist.
 ```
-aostoyae_STAR_CUFF_RRPM.sh
+# STAR illesztéshez szükséges indexelés
+
+mkdir DIR_RRPM
+cp -r ./genome ./DIR_RRPM/RRPM_STARindex
+cd ./DIR_RRPM/RRPM_STARindex
+STAR --runThreadN 16 --runMode genomeGenerate --genomeDir ../RRPM_STARindex --sjdbGTFfile ../RRPM_STARindex/original_fixed.gtf --genomeFastaFiles ../RRPM_STARindex/original_genes.fasta --sjdbOverhang 100 --genomeChrBinNbits 12
+cd ../..
+
+mkdir ./DIR_RRPM/RRPM_STARout
+cd ./DIR_RRPM/RRPM_STARout
+STAR --runThreadN 16 --genomeDir ../RRPM_STARindex --readFilesIn ../../raw_data/ARO_FB_C_R1.all.R1.fastq.gz,../../raw_data/ARO_FB_C_R2.all.R1.fastq.gz,../../raw_data/ARO_FB_C_R3.all.R1.fastq.gz,../../raw_data/ARO_FB_L_R1.all.R1.fastq.gz,../../raw_data/ARO_FB_L_R2.all.R1.fastq.gz,../../raw_data/ARO_FB_L_R3.all.R1.fastq.gz,../../raw_data/ARO_FB_S_R1.all.R1.fastq.gz,../../raw_data/ARO_FB_S_R2.all.R1.fastq.gz,../../raw_data/ARO_FB_S_R3.all.R1.fastq.gz,../../raw_data/ARO_P1_R1.all.R1.fastq.gz,../../raw_data/ARO_P1_R2.all.R1.fastq.gz,../../raw_data/ARO_P1_R3.all.R1.fastq.gz,../../raw_data/ARO_P2_C_R1.all.R1.fastq.gz,../../raw_data/ARO_P2_C_R2.all.R1.fastq.gz,../../raw_data/ARO_P2_C_R3.all.R1.fastq.gz,../../raw_data/ARO_P2_S_R1.all.R1.fastq.gz,../../raw_data/ARO_P2_S_R2.all.R1.fastq.gz,../../raw_data/ARO_P2_S_R3.all.R1.fastq.gz,../../raw_data/ARO_RMA_R1.all.R1.fastq.gz,../../raw_data/ARO_RMA_R2.all.R1.fastq.gz,../../raw_data/ARO_RMA_R3.all.R1.fastq.gz,../../raw_data/ARO_VM_R1.all.R1.fastq.gz,../../raw_data/ARO_VM_R2.all.R1.fastq.gz,../../raw_data/ARO_VM_R3.all.R1.fastq.gz,../../raw_data/ARO_YFB_C_R1.all.R1.fastq.gz,../../raw_data/ARO_YFB_C_R2.all.R1.fastq.gz,../../raw_data/ARO_YFB_C_R3.all.R1.fastq.gz,../../raw_data/ARO_YFB_S_R1.all.R1.fastq.gz,../../raw_data/ARO_YFB_S_R2.all.R1.fastq.gz,../../raw_data/ARO_YFB_S_R3.all.R1.fastq.gz ../../raw_data/ARO_FB_C_R1.all.R2.fastq.gz,../../raw_data/ARO_FB_C_R2.all.R2.fastq.gz,../../raw_data/ARO_FB_C_R3.all.R2.fastq.gz,../../raw_data/ARO_FB_L_R1.all.R2.fastq.gz,../../raw_data/ARO_FB_L_R2.all.R2.fastq.gz,../../raw_data/ARO_FB_L_R3.all.R2.fastq.gz,../../raw_data/ARO_FB_S_R1.all.R2.fastq.gz,../../raw_data/ARO_FB_S_R2.all.R2.fastq.gz,../../raw_data/ARO_FB_S_R3.all.R2.fastq.gz,../../raw_data/ARO_P1_R1.all.R2.fastq.gz,../../raw_data/ARO_P1_R2.all.R2.fastq.gz,../../raw_data/ARO_P1_R3.all.R2.fastq.gz,../../raw_data/ARO_P2_C_R1.all.R2.fastq.gz,../../raw_data/ARO_P2_C_R2.all.R2.fastq.gz,../../raw_data/ARO_P2_C_R3.all.R2.fastq.gz,../../raw_data/ARO_P2_S_R1.all.R2.fastq.gz,../../raw_data/ARO_P2_S_R2.all.R2.fastq.gz,../../raw_data/ARO_P2_S_R3.all.R2.fastq.gz,../../raw_data/ARO_RMA_R1.all.R2.fastq.gz,../../raw_data/ARO_RMA_R2.all.R2.fastq.gz,../../raw_data/ARO_RMA_R3.all.R2.fastq.gz,../../raw_data/ARO_VM_R1.all.R2.fastq.gz,../../raw_data/ARO_VM_R2.all.R2.fastq.gz,../../raw_data/ARO_VM_R3.all.R2.fastq.gz,../../raw_data/ARO_YFB_C_R1.all.R2.fastq.gz,../../raw_data/ARO_YFB_C_R2.all.R2.fastq.gz,../../raw_data/ARO_YFB_C_R3.all.R2.fastq.gz,../../raw_data/ARO_YFB_S_R1.all.R2.fastq.gz,../../raw_data/ARO_YFB_S_R2.all.R2.fastq.gz,../../raw_data/ARO_YFB_S_R3.all.R2.fastq.gz --readFilesCommand zcat --genomeChrBinNbits 12 --outSAMtype BAM SortedByCoordinate --outSAMstrandField intronMotif --twopassMode Basic --outFilterIntronMotifs RemoveNoncanonicalUnannotated --limitBAMsortRAM 80000000000 --alignIntronMax 30000 --alignIntronMin 3
+cd ../..
+
+# Cufflinks assembly az alternatív splice variánsok meghatározására
+
+cufflinks -p 16 -g ./DIR_RRPM/RRPM_STARindex/original_fixed.gtf --max-intron-length 30000 --min-intron-length 3 --overlap-radius 25 --max-bundle-length 250000 -o ./DIR_RRPM/RRPM_CUFFout ./DIR_RRPM/RRPM_STARout/Aligned.sortedByCoord.out.bam
 ```
 ## Filtering and Merge
 Az RRPM outputot filterezzük, majd összeillesztjük az eredeti annotációs fájllal, hogy kitöltsük az esetleges hézagokat, ahol nem mutatott expressziós értéket az eredeti annotációban szereplő transzkript.
