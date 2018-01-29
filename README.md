@@ -11,11 +11,12 @@ A bemeneti annotációs fájlokat át kell alakítani, hogy megfelelőek legyene
 - __p3_i2_t47428_Arm_ostoy_v2.gff3__ : saját annotációs fájl
 - __p3_i2_t47428_Arm_ostoy_v2.scaf__ : saját scaffoldokat tartalmazó FASTA
 ### Output:
-- __aostoyae.gtf__
-- __aostoyae_onlygene.gtf__
-- __aostoyae_onlyexon.gtf__
-- __aostoyae_fixed.gtf__
-- __aostoyae_genes.fasta__
+- __aostoyae.gtf__ : A GTF-é alakított GFF3 fájl
+- __aostoyae_onlygene.gtf__ : Csak a géneket tartalmazó annotációs fájl
+- __aostoyae_onlyexon.gtf__ : Csak az exonokat tartalmazó annotációs fájl
+- __aostoyae_fixed.gtf__ : Pozíciófixált annotációs fájl az RRPM számára
+- __aostoyae_genes.fasta__ : Géneket tartalmazó fasta fájl
+
 A GFF3 fájlt átalakítjuk GTF formátumra a további analízishez
 ```
 gffread p3_i2_t47428_Arm_ostoy_v2.gff3 -T -o aostoyae.gtf
@@ -42,6 +43,7 @@ Megnézzük milyen hosszúak a gének és az intronok a STAR és a Cufflinks be�
 Elkészítünk egy fájlt ami tartalmazza az összes szükséges scriptet ami az RRPM futtatásához szükséges (STAR, Cufflinks)
 ### Input:
 - __aostoyae_genes.fasta__
+- __aostoyae_fixed.gtf__
 ### Output:
 - __gene_length__
 - A __Cufflinks__ __outputja__ ami tartalmazza az RRPM analízis fájljait
