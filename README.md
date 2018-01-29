@@ -97,6 +97,7 @@ FUSION_FILTER_aostoyae.R
 ## Expression: STAR Alignment, Cuffquant Assembly and Cuffdiff analysis
 ### Output:
 - A __CuffDiff__ __output__ fájljai az expreszziós analízisből
+
 Futtatunk egy teljes STAR illesztést majd egy Cuffquantot, majd kinyerjük az expressziós értékeket a CuffDiff segítségével.
 ```
 aostoyae_STAR_CUFF_expression.sh
