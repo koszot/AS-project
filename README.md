@@ -22,7 +22,7 @@ gffread p3_i2_t47428_Arm_ostoy_v2.gff3 -T -o aostoyae.gtf
 ```
 GTF fájlok elkészítése az RRPM számára
 ```
-scripts/aostoyae/PREPARATIONS_aostoyae.R
+PREPARATIONS_aostoyae.R
 ```
 GTF fájl bed formátumra alakítása a géneket tartalmazó FASTA fájl elkészítéséhez
 ```
@@ -46,15 +46,17 @@ Elkészítünk egy fájlt ami tartalmazza az összes szükséges scriptet ami az
 - __gene_length__
 ```
 bioawk -c fastx '{ print $name, length($seq) }' < aostoyae_genes.fasta > gene_length
-scripts/aostoyae/INTRON_LENGTH_aostoyae.R
+INTRON_LENGTH_aostoyae.R
 ```
 A maximális transzkriptméret: 16175 --> max-bundle-length marad 250000
 
 Intron min: 21 --> --alignIntronMin marad 3 
 
 Intron max: 6767 --> --alignIntronMax marad 30000
+
+Lefuttatjuk az RRPM analízist.
 ```
-Cufflinks_scripts/aostoyae_STAR_CUFF_RRPM.sh
+aostoyae_STAR_CUFF_RRPM.sh
 ```
 ## Filtering and Merge
 Az RRPM outputot filterezzük, majd összeillesztjük az eredeti annotációs fájllal, hogy kitöltsük az esetleges hézagokat, ahol nem mutatott expressziós értéket az eredeti annotációban szereplő transzkript.
@@ -74,8 +76,9 @@ Lépések:
 ### Output:
 - __aostoyae_RRPM_transcripts.gtf__ : Az újonnan felfedezett transzkripteket tartalmazó GTF
 - __aostoyae_AS_annotation.gtf__ : Az eredeti annotációval történő összemergeelés, hogy az esetlegesen nem detektált gének is bennelegyenek az annotációs fájlban.
+- __aostoyae_stats.log__ : Szűrési statisztikákat tartalmazó logfájl
 ```
-scripts/aostoyae/FILTERING_aostoyae.R
+FILTERING_aostoyae.R
 ```
 ## Fusion correction
 ### Input:
@@ -83,11 +86,62 @@ scripts/aostoyae/FILTERING_aostoyae.R
 - __aostoyae_AS_annotation.gtf__
 ### Output:
 - Összesen 2 fúziós gén detektálva : __AROS_19248__, __AROS_20796__
+
 Megvizsgáljuk, hogy melyek azok a gének amik fúziósak voltak az eredeti annotációba de már két külön gént alkotnak, majd ezeket a géneket manuális IGV megtekintés után átnevezzük v1, v2 satöbbire.
 ```
-scripts/aostoyae/FUSION_FILTER_aostoyae.R
+FUSION_FILTER_aostoyae.R
 ```
+## Expression: STAR Alignment, Cuffquant Assembly and Cuffdiff analysis
+Futtatunk egy teljes STAR illesztést majd egy Cuffquantot, majd kinyerjük az expressziós értékeket a Cuffdiff segítségével.
+```
+aostoyae_STAR_CUFF_expression.sh
+```
+## ORF prediction and InterProScan analysis
+### Input:
+- __aostoyae_AS_annotation.gtf__
+- __p3_i2_t47428_Arm_ostoy_v2.scaf__
+### Output:
+- __aostoyae_proteins_all.fasta__ : Minden transzkriptre a leghosszabb ORF-ek alapján prediktált proteinek
+- __aostoyae_proteins_all.fasta.tsv__ : Minden transzkriptre a leghosszabb ORF-ek alapján prediktált proteinhez tartozó InterProScan domainek
 
+Prediktáljuk az ORF régiókat TransDecoder segítségével.
+```
+~/TransDecoder-3.0.1/util/cufflinks_gtf_genome_to_cdna_fasta.pl aostoyae_AS_annotation.gtf p3_i2_t47428_Arm_ostoy_v2.scaf > aostoyae_transcripts.fasta
+TransDecoder.LongOrfs -m 20 -S -t aostoyae_transcripts.fasta
+```
+Majd kiemeljük csak a headereket egy külön fájlba (headers.cds, ezt akkor még manuálisan csináltam de mostmár beleépíteném az R scriptbe). Majd regexp-el átalakítjuk a headereket, hogy fel tudja őket dolgozni az R script.
+```
+perl -pi -e 's/>//g' headers.cds
+perl -pi -e 's/ /\t/g' headers.cds
+perl -pi -e 's/\ttype:.*len:/\t/g' headers.cds
+perl -pi -e 's/::/\t/g' headers.cds
+```
+Egy R script segítségével kiszedjük a leghosszabb ORF-ekhez tartalmazó headereket. 
+```
+INTERPROSCAN_aostoyae.R
+```
+Majd ezzel megszűrjük a fehérjeszekvenciákat tartalmazó fájlt, végül átalakítjuk úgy a FASTA-fájlt, hogy az InterProScan számára megfelelő legyen. (Elég körülményesen oldottam ezt meg de működik, nyilván mostmár máshogy írnám még ezt a részt egy R scriptbe)
+```
+# átalakítás
+\)\n --> \)\t
+# szűrés
+while read l; do perl -n -e "print if /^>$l::.*/" longest_orfs.pep >> aostoyae_proteins_all.fasta; done <filter
+# visszalakítás
+\)\t --> \)\n
+```
+Töröljük a fasta fájlból a *-okat mivel az InterProScan nem tudja értelmezni
+```
+perl -pi -e 's/\*//g' aostoyae_proteins_all.fasta
+```
+Egy kis regexp átalakítás az áttekinthetőségért
+```
+perl -pi -e 's/::g\..*$//g' aostoyae_proteins_all.fasta
+perl -pi -e 's/^>.*::/>/g' aostoyae_proteins_all.fasta
+```
+Majd pedig lefuttatjuk at InterProScan-t
+```
+interproscan.sh -i aostoyae_proteins_all.fasta -f tsv --iprlookup --goterms
+```
 
 
 
@@ -494,73 +548,7 @@ scripts/umaydis/FUSION_FILTER_umaydis.R
 # nincs
 ```
 
-# Alternative Splicing Statistics
 
-Kinyerjük az alternative splicing statisztikákat majd az output ASpli_binFeatures.log fájlt átnevezzük xy_ASpli_binFeatures.log-ra ahol az xy a faj neve. Ezek a fájlok ezen a néven érhetőek el az adott faj könyvtárába.
-
-### Armillaria ostoyae
-
-```
-scripts/aostoyae/AS_STATS_aostoyae.R
-```
-
-### Auriculariopsis ampla
-
-```
-scripts/aampla/AS_STATS_aampla.R
-```
-
-### Coprinopsis cinerea
-
-```
-scripts/ccinerea/AS_STATS_ccinerea.R
-```
-
-### Cryptococcus neoformans
-
-```
-scripts/cneoformans/AS_STATS_cneoformans.R
-```
-
-### Lentinus tigrinus
-
-```
-scripts/lrigrinus/AS_STATS_lrigrinus.R
-```
-
-### Phanerochaete chrysosporium
-
-```
-scripts/pchrysosporium/AS_STATS_pchrysosporium.R
-```
-
-### Rickenella mellea
-
-```
-scripts/rmellea/AS_STATS_rmellea.R
-```
-
-### Schizophyllum commune
-
-```
-scripts/scommune/AS_STATS_scommune.R
-```
-
-### Ustilago maydis
-
-```
-scripts/umaydis/AS_STATS_umaydis.R
-```
-
-# Expression: STAR Alignment, Cuffquant Assembly and Cuffdiff analysis
-
-Futtatunk egy teljes STAR illesztést majd egy Cuffquantot, majd kinyerjük az expressziós értékeket a Cuffdiff segítségével.
-
-### Armillaria ostoyae
-
-```
-Cufflinks_scripts/aostoyae_STAR_CUFF_expression.sh
-```
 
 ### Auriculariopsis ampla
 
@@ -612,51 +600,7 @@ Túl sok a short read miatti unmapped MEGOLDÁS -> https://github.com/alexdobin/
 Cufflinks_scripts/umaydis_STAR_CUFF_expression.sh
 ```
 
-# ORF prediction and InterProScan analysis
 
-Prediktáljuk az ORF régiókat TransDecoder segítségével, majd kiemeljük csak a headereket egy külön fájlba (headers.cds, ezt akkor még manuálisan csináltam de mostmár beleépíteném az R scriptbe).
-
-Egy R script segítségével kiszedjük a longest ORF-hez tartalmazó headereket majd ezzel megszűrjük a fehérjeszekvenciákat tartalmazó fájlt, végül átalakítjuk úgy a FASTA-fájlt, hogy az InterProScan számára megfelelő legyen. (Elég körülményesen oldottam ezt meg de működik, nyilván mostmár máshogy írnám még ezt a részt egy R scriptbe)
-
-### Armillaria ostoyae
-
-```
-# ORF régiók prediktálása
-mkdir ~/Desktop/alternative_splicing/aostoyae/aostoyae_enrichment_analysis
-cd ~/Desktop/alternative_splicing/aostoyae/aostoyae_enrichment_analysis
-~/TransDecoder-3.0.1/util/cufflinks_gtf_genome_to_cdna_fasta.pl ../aostoyae_genome/aostoyae_AS_annotation.gtf ../aostoyae_genome/p3_i2_t47428_Arm_ostoy_v2.scaf > aostoyae_transcripts.fasta
-~/TransDecoder-3.0.1/util/cufflinks_gtf_to_alignment_gff3.pl ../aostoyae_genome/aostoyae_AS_annotation.gtf  > ../aostoyae_genome/aostoyae_AS_annotation.gff3
-TransDecoder.LongOrfs -m 20 -S -t aostoyae_transcripts.fasta
-
-# kiszedjük a fasta headereket
-perl -pi -e 's/>//g' headers.cds
-perl -pi -e 's/ /\t/g' headers.cds
-perl -pi -e 's/\ttype:.*len:/\t/g' headers.cds
-perl -pi -e 's/::/\t/g' headers.cds
-
-# R script
-scripts/aostoyae/INTERPROSCAN_aostoyae.R
-
-# sublime text átalakítás a longest_orfs.pep fileon, hogy egy sorba legyen a header is meg a szekvencia is
-\)\n --> \)\t
-
-# megszűrjük a filter IDjeivel a fehérje FASTA fájlt
-while read l; do perl -n -e "print if /^>$l::.*/" longest_orfs.pep >> aostoyae_proteins_all.fasta; done <filter
-
-# FASTA formátum helyreállítása sublime-al
-\)\t --> \)\n
-
-# *-ok törlése mivel az InterProScan nem tudja értelmezni
-perl -pi -e 's/\*//g' aostoyae_proteins_all.fasta
-
-# kis átalakítás a könnyebb áttekinthetőség végett
-perl -pi -e 's/::g\..*$//g' aostoyae_proteins_all.fasta
-perl -pi -e 's/^>.*::/>/g' aostoyae_proteins_all.fasta
-```
-
-```
-./interproscan.sh -i aostoyae_proteins_all.fasta -f tsv --iprlookup --goterms
-```
 
 ### Auriculariopsis ampla
 
@@ -975,79 +919,6 @@ perl -pi -e 's/^>.*::/>/g' umaydis_proteins_all.fasta
 interproscan.sh -i umaydis_proteins_all.fasta -f tsv --iprlookup --goterms -dp
 ```
 
-# AS transcripts table (OUTDATED)
-
-!!!!! FONTOS !!!!!
-
-A CDS régiók, továbbá a domain összetétel összehasonlításakor primary transcriptnek az lett megadva amelyik a legmagasabb expressziós értékkel rendelkezik a transzkriptek közül összességébem ezért ez az elemzés az új primary transcript kiválasztása miatt outdated!
-
-Ez a TSV fájl tartalmazza az AS-ben résztvevő szűrt transcripteket.
-
-A táblázat csak olyan transzkriptt tartalmaz:
-- Aminek az anyagénje részt vesz alternative splicingban
-- Aminek az anyagénje legalább az egyik fejlődési fázsiban eléri a  2 FPKM-es értéket
-- Ami legalább egy egyik fázisban eléri vagy meghaladja az anyagén adott fázisban lévő teljes expressziós értékének legalább 10%-át
-
-A táblázat tartalmazza a következő adatokat:
-- Expressziós értékek
-- Fold Change értékek
-- A CDS régiókra vonatkozó értékek és összehasonlítások
-- Domain összetételek és azok összehasonlítása
-- GO annotációk
-
-### Armillaria ostoyae
-
-```
-scripts/aostoyae/AS_TRANSCRIPTS_TABLE_aostoyae.R
-```
-
-### Auriculariopsis ampla
-
-```
-scripts/aampla/AS_TRANSCRIPTS_TABLE_aampla.R
-```
-
-### Coprinopsis cinerea
-
-```
-scripts/ccinerea/AS_TRANSCRIPTS_TABLE_ccinerea.R
-```
-
-### Cryptococcus neoformans
-
-```
-scripts/cneoformans/AS_TRANSCRIPTS_TABLE_cneoformans.R
-```
-
-### Lentinus tigrinus
-
-```
-scripts/ltigrinus/AS_TRANSCRIPTS_TABLE_ltigrinus.R
-```
-
-### Phanerochaete chrysosporium
-
-```
-scripts/pchyrsosporium/AS_TRANSCRIPTS_TABLE_pchyrsosporium.R
-```
-
-### Rickenella mellea
-
-```
-scripts/rmellea/AS_TRANSCRIPTS_TABLE_rmellea.R
-```
-
-### Schizophyllum commune
-
-```
-scripts/scommune/AS_TRANSCRIPTS_TABLE_scommune.R
-```
-
-### Ustilago maydis
-
-```
-scripts/umaydis/AS_TRANSCRIPTS_TABLE_umaydis.R
-```
 
 # Enrichment (OUTDATED)
 
