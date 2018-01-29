@@ -30,26 +30,25 @@ A bemeneti annotációs fájlokat át kell alakítani, hogy megfelelőek legyene
 ### Output:
 
 ### Steps:
-
 A GFF3 fájlt átalakítjuk GTF formátumra a további analízishez
 ```
-gffread ./aostoyae/genome/p3_i2_t47428_Arm_ostoy_v2.gff3 -T -o ./aostoyae/genome/original.gtf
+gffread p3_i2_t47428_Arm_ostoy_v2.gff3 -T -o original.gtf
 ```
-
 GTF fájlok elkészítése az RRPM számára
 ```
 scripts/aostoyae/PREPARATIONS_aostoyae.R
 ```
-
+GTF fájl bed formátumra alakítása a géneket tartalmazó FASTA fájl elkészítéséhez
 ```
-# GTF fájl bed formátumra alakítása a géneket tartalmazó FASTA fájl elkészítéséhez
-gtf2bed < ./aostoyae/genome/original_onlygene.gtf > ./aostoyae/genome/original_onlygene.gtf.bed
-
-# A géneket tartalmazó FASTA fájl elkészítése
-bedtools getfasta -name -fo ./aostoyae/aostoyae_genome/original_genes.fasta -fi ./aostoyae/aostoyae_genome/p3_i2_t47428_Arm_ostoy_v2.scaf -bed ./aostoyae/aostoyae_genome/original_onlygene.gtf.bed
-
-# A géneket tartalmazó FASTA fájl headerjének a trimmelése
-perl -pi -e 's/::.*//g' ./aostoyae/aostoyae_genome/original_genes.fasta
+gtf2bed < original_onlygene.gtf > original_onlygene.gtf.bed
+```
+A géneket tartalmazó FASTA fájl elkészítése
+```
+bedtools getfasta -name -fo original_genes.fasta -fi p3_i2_t47428_Arm_ostoy_v2.scaf -bed original_onlygene.gtf.bed
+```
+A géneket tartalmazó FASTA fájl headerjének a trimmelése
+```
+perl -pi -e 's/::.*//g' original_genes.fasta
 ```
 
 ### Auriculariopsis ampla
