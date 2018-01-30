@@ -426,7 +426,6 @@ Egy kis regexp átalakítás az áttekinthetőségért
 perl -pi -e 's/::g\..*$//g' aostoyae_proteins_all.fasta
 perl -pi -e 's/^>.*::/>/g' aostoyae_proteins_all.fasta
 ```
-
 ## InterProScan analysis
 ### Input:
 - __aostoyae_proteins_all.fasta__ : Minden transzkriptre a leghosszabb ORF-ek alapján prediktált proteinek
@@ -437,6 +436,11 @@ Lefuttatjuk at InterProScan-t.
 ```
 interproscan.sh -i aostoyae_proteins_all.fasta -f tsv --iprlookup --goterms
 ```
+## Final Table
+
+
+
+
 ## Enrichment
 ### Input:
 - __p3_i2_t47428_Arm_ostoy_v2.prot__

@@ -1,41 +1,5 @@
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-## Auriculariopsis ampla
-
-### Input:
-
-### Output:
-
-### Steps:
-GTF fájlok elkészítése az RRPM számára
-```
-scripts/aampla/PREPARATIONS_aampla.R
-```
-GTF fájl bed formátumra alakítása a géneket tartalmazó FASTA fájl elkészítéséhez
-```
-gtf2bed < aampla_onlygene.gtf > aampla_onlygene.gtf.bed
-```
-A géneket tartalmazó FASTA fájl elkészítése
-```
-bedtools getfasta -name -fo aampla_genes.fasta -fi Auramp1_AssemblyScaffolds.fasta -bed aampla_onlygene.gtf.bed
-```
-A géneket tartalmazó FASTA fájl headerjének a trimmelése
-```
-perl -pi -e 's/::.*//g' aampla_genes.fasta
-```
-
 ## Coprinopsis cinerea
 
 ```
@@ -183,24 +147,6 @@ perl -pi -e 's/::.*//g' ./umaydis_genome/umaydis_genes.fasta
 
 
 
-## Auriculariopsis ampla (UPDATED)
-### Input:
-- __aampla_genes.fasta__
-### Output:
-- __gene_length__
-### Steps:
-```
-bioawk -c fastx '{ print $name, length($seq) }' < aampla_genes.fasta > gene_length
-scripts/aampla/INTRON_LENGTH_aampla.R
-````
-A maximális transzkriptméret: 23200 --> max-bundle-length marad 250000
-
-Intron min: 3 --> --alignIntronMin marad 3 
-
-Intron max: 2000 --> --alignIntronMax marad 30000
-```
-Cufflinks_scripts/aampla_STAR_CUFF_RRPM.sh
-```
 
 ### Coprinopsis cinerea
 
@@ -304,11 +250,6 @@ Cufflinks_scripts/umaydis_STAR_CUFF_RRPM.sh
 
 
 
-## Auriculariopsis ampla
-
-```
-scripts/aampla/FILTERING_aampla.R
-```
 
 ### Coprinopsis cinerea
 
@@ -354,12 +295,7 @@ scripts/umaydis/FILTERING_umaydis.R
 
 
 
-### Auriculariopsis ampla
 
-```
-scripts/aampla/FUSION_FILTER_aampla.R
-# c("411782", "505059")
-```
 
 ### Coprinopsis cinerea
 
@@ -468,17 +404,10 @@ Cufflinks_scripts/umaydis_STAR_CUFF_expression.sh
 
 ```
 # ORF régiók prediktálása
-mkdir ~/Desktop/alternative_splicing/aampla/aampla_enrichment_analysis
-cd ~/Desktop/alternative_splicing/aampla/aampla_enrichment_analysis
-~/TransDecoder-3.0.1/util/cufflinks_gtf_genome_to_cdna_fasta.pl ../aampla_genome/aampla_AS_annotation.gtf ../aampla_genome/Auramp1_AssemblyScaffolds.fasta > aampla_transcripts.fasta
-~/TransDecoder-3.0.1/util/cufflinks_gtf_to_alignment_gff3.pl ../aampla_genome/aampla_AS_annotation.gtf  > ../aampla_genome/aampla_AS_annotation.gff3
-TransDecoder.LongOrfs -m 20 -S -t aampla_transcripts.fasta
+
 
 # kiszedjük a fasta headereket
-perl -pi -e 's/>//g' headers.cds
-perl -pi -e 's/ /\t/g' headers.cds
-perl -pi -e 's/\ttype:.*len:/\t/g' headers.cds
-perl -pi -e 's/::/\t/g' headers.cds
+
 
 # R script
 scripts/aampla/INTERPROSCAN_aampla.R
