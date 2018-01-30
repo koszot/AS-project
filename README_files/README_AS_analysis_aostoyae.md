@@ -436,30 +436,3 @@ Lefuttatjuk at InterProScan-t.
 ```
 interproscan.sh -i aostoyae_proteins_all.fasta -f tsv --iprlookup --goterms
 ```
-## Final Table
-
-
-
-
-## Enrichment
-### Input:
-- __p3_i2_t47428_Arm_ostoy_v2.prot__
-- __isoforms.fpkm_tracking__ : A CuffDiff analízis output fájlja ami az izoformák expressziós értékeit tartalmazza
-- __genes.fpkm_tracking__ : A CuffDiff analízis output fájlja ami a gének expressziós értékeit tartalmazza
-### Output:
-- __p3_i2_t47428_Arm_ostoy_v2.prot.tsv__ : Az InterProScan domaineket tartalmazó output fájlja
-- __aostoyae_GO_dict.tsv__ : A géneket és a GO-kat tartalmazó táblázat
-
-Lefuttatjuk az InterProScan-t a GeneCatalog génjeire.
-```
-interproscan.sh -i p3_i2_t47428_Arm_ostoy_v2.prot -f tsv --iprlookup --goterms
-```
-Készítünk egy táblázatot ami tartalmazza a génekhez tartozó GO azonosítókat az enrichment számára.
-```
-ENRICHMENT_preparations_aostoyae.R
-```
-FONTOS: A következő két scriptet újra kell futtatni mert megváltozott a definíciója a DEVREG-nek és az AS-nek is.
-```
-ENRICHMENT_groups_aostoyae.R
-ENRICHMENT_fisher_classic_aostoyae.R
-```
