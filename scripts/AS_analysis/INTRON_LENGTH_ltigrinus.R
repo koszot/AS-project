@@ -2,11 +2,11 @@ library(dplyr)
 library(readr)
 library(tidyr)
 
-setwd("~/Desktop/alternative_splicing/ltigrinus/")
+setwd("~/Desktop/MTA/AS_project/FILES_ltigrinus_v2/")
 
-transcript_lengths <- read_tsv("genome/gene_length", col_names = F)
+transcript_lengths <- read_tsv("GENOME_ltigrinus/gene_length", col_names = F)
 
-transcripts <- read_tsv("ltigrinus_genome/ltigrinus_onlyexon.gtf", 
+transcripts <- read_tsv("GENOME_ltigrinus/ltigrinus_onlyexon.gtf", 
                         col_names = c("chr", "maker", "type", "start", "end", "att1", "strand", "att2", "attributes"))  
 
 transcripts <- transcripts %>%

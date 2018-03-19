@@ -3,8 +3,8 @@
 ## Preparations
 A bemeneti annotációs fájlokat át kell alakítani, hogy megfelelőek legyenek a Cufflinks számára illetve elő kell állítani azokat az annotációs és FASTA fájlokat amik az RRPM analízishez szükségesek. 
 ### Input:
-- __Sisbr1_GeneCatalog_genes_20130805.gff__ : Forrás a JGI
-- __Sisbr1_AssemblyScaffolds.fasta__ : Forrás a JGI
+- __Lenti6_1_GeneCatalog_genes_20130903.gff__ : Forrás a JGI
+- __Lenti6_1_AssemblyScaffolds.fasta__ : Forrás a JGI
 ### Output:
 - __ltigrinus_onlygene.gtf__ : Csak a géneket tartalmazó annotációs fájl
 - __ltigrinus_onlyexon.gtf__ : Csak az exonokat tartalmazó annotációs fájl
@@ -21,7 +21,7 @@ gtf2bed < ltigrinus_onlygene.gtf > ltigrinus_onlygene.gtf.bed
 ```
 A géneket tartalmazó FASTA fájl elkészítése
 ```
-bedtools getfasta -name -fo ltigrinus_genes.fasta -fi Sisbr1_AssemblyScaffolds.fasta -bed ltigrinus_onlygene.gtf.bed
+bedtools getfasta -name -fo ltigrinus_genes.fasta -fi Lenti6_1_AssemblyScaffolds.fasta -bed ltigrinus_onlygene.gtf.bed
 ```
 A géneket tartalmazó FASTA fájl headerjének a trimmelése
 ```
@@ -41,11 +41,11 @@ Elkészítünk egy fájlt ami tartalmazza az összes szükséges scriptet ami az
 bioawk -c fastx '{ print $name, length($seq) }' < ltigrinus_genes.fasta > gene_length
 INTRON_LENGTH_ltigrinus.R
 ```
-A maximális transzkriptméret: 16440 --> max-bundle-length marad 250000
+A maximális transzkriptméret: 39394 --> max-bundle-length marad 250000
 
-Intron min: 11 --> --alignIntronMin marad 3 
+Intron min: 1 --> --alignIntronMin marad 3 
 
-Intron max: 15143 --> --alignIntronMax marad 30000
+Intron max: 38009 --> --alignIntronMax marad 30000
 
 Lefuttatjuk az RRPM analízist.
 ```
@@ -68,6 +68,13 @@ cd ../..
 
 cufflinks -p 16 -g ./ltigrinus_DIR_RRPM/ltigrinus_RRPM_STARindex/ltigrinus_fixed.gtf --max-intron-length 30000 --min-intron-length 3 --overlap-radius 25 --max-bundle-length 250000 -o ./ltigrinus_DIR_RRPM/ltigrinus_RRPM_CUFFout ./ltigrinus_DIR_RRPM/ltigrinus_RRPM_STARout/Aligned.sortedByCoord.out.bam
 ```
+
+
+
+
+
+
+
 ## Filtering and Merge
 Az RRPM outputot filterezzük, majd összeillesztjük az eredeti annotációs fájllal, hogy kitöltsük az esetleges hézagokat, ahol nem mutatott expressziós értéket az eredeti annotációban szereplő transzkript.
 

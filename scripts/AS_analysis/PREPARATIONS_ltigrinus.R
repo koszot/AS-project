@@ -5,9 +5,9 @@ library(stringr)
 
 # beolvassuk az eredeti GFF annotációs fájlt és átalakítjuk GTF formtátumra ami jó a Cufflinksnek
 
-setwd("Desktop/alternative_splicing/ltigrinus/")
+setwd("~/Desktop/MTA/AS_project/FILES_ltigrinus_v2/")
 
-original <- read_tsv("ltigrinus_genome/Sisbr1_GeneCatalog_genes_20130805.gff", col_names = c("chr", "maker", "type", "start", "end", "att1", "strand",  "att2", "attributes"))
+original <- read_tsv("GENOME_ltigrinus/Lenti6_1_GeneCatalog_genes_20130903.gff", col_names = c("chr", "maker", "type", "start", "end", "att1", "strand",  "att2", "attributes"))
 
 original <- original %>%
   filter(type == "exon") %>%
@@ -27,7 +27,7 @@ original$tid_id <- original$tid_id %>%
 
 original_fixed <- unite(original, attributes, 9:12, sep = " ")
 
-write.table(original_fixed, file = "ltigrinus_genome/ltigrinus_onlyexon.gtf", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+write.table(original_fixed, file = "GENOME_ltigrinus/ltigrinus_onlyexon.gtf", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
 
 # csak a gének határait tartalmazó GTF fájl létrehozása
 
@@ -54,7 +54,7 @@ genes <- exon_to_genes(original)
 
 genes <- unite(genes, attributes, 9:12, sep = " ")
 
-write.table(genes, file = "./ltigrinus_genome/ltigrinus_onlygene.gtf", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
+write.table(genes, file = "GENOME_ltigrinus/ltigrinus_onlygene.gtf", sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
 
 # exon pozíciók átalakítása a RRPM-hez
 
@@ -83,4 +83,4 @@ exon_fixed <- exon_fix(original)
 
 exon_fixed <- unite(exon_fixed, attributes, 9:12, sep = " ")
 
-write.table(exon_fixed, file = "./ltigrinus_genome/ltigrinus_fixed.gtf", row.names = FALSE, col.names = FALSE, quote = FALSE, sep = "\t")
+write.table(exon_fixed, file = "GENOME_ltigrinus/ltigrinus_fixed.gtf", row.names = FALSE, col.names = FALSE, quote = FALSE, sep = "\t")
