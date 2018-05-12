@@ -69,12 +69,6 @@ cd ../..
 cufflinks -p 16 -g ./ltigrinus_DIR_RRPM/ltigrinus_RRPM_STARindex/ltigrinus_fixed.gtf --max-intron-length 30000 --min-intron-length 3 --overlap-radius 25 --max-bundle-length 250000 -o ./ltigrinus_DIR_RRPM/ltigrinus_RRPM_CUFFout ./ltigrinus_DIR_RRPM/ltigrinus_RRPM_STARout/Aligned.sortedByCoord.out.bam
 ```
 
-
-
-
-
-
-
 ## Filtering and Merge
 Az RRPM outputot filterezzük, majd összeillesztjük az eredeti annotációs fájllal, hogy kitöltsük az esetleges hézagokat, ahol nem mutatott expressziós értéket az eredeti annotációban szereplő transzkript.
 
@@ -102,7 +96,7 @@ FILTERING_ltigrinus.R
 - __isoforms.fpkm_tracking__ : Az RRPM Cufflinks output izoforms FPKM értékeket tartalmazó fájlja
 - __ltigrinus_AS_annotation.gtf__
 ### Output:
-- Két fúziós gént detektált a script: __599196__, __599676__
+- Egy fúziós gént detektált a script: __578379__
 
 Megvizsgáljuk, hogy melyek azok a gének amik fúziósak voltak az eredeti annotációba de már két külön gént alkotnak, majd ezeket a géneket manuális IGV megtekintés után átnevezzük v1, v2 satöbbire.
 ```
@@ -342,6 +336,12 @@ cuffdiff -q -o CUFFdiff -b ./ltigrinus_DIR_expressionanalysis/ltigrinus_STARinde
 ./ltigrinus_DIR_expressionanalysis/LT_FB_L_R1_CUFFquant/abundances.cxb,./ltigrinus_DIR_expressionanalysis/LT_FB_L_R2_CUFFquant/abundances.cxb,./ltigrinus_DIR_expressionanalysis/LT_FB_L_R4_CUFFquant/abundances.cxb \
 ./ltigrinus_DIR_expressionanalysis/LT_FB_T_R2_CUFFquant/abundances.cxb,./ltigrinus_DIR_expressionanalysis/LT_FB_T_R3_CUFFquant/abundances.cxb,./ltigrinus_DIR_expressionanalysis/LT_FB_T_R4_CUFFquant/abundances.cxb
 ```
+
+
+
+
+
+
 ## ORF prediction
 ### Input:
 - __ltigrinus_AS_annotation.gtf__

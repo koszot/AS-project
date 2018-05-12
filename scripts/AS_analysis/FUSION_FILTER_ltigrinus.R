@@ -5,9 +5,9 @@ library(stringr)
 
 setwd("~")
 
-isoforms_tracking <- read_tsv("Desktop/alternative_splicing/ltigrinus/ltigrinus_RRPM_CUFFout/isoforms.fpkm_tracking")
+isoforms_tracking <- read_tsv("Desktop/MTA/AS_project/FILES_ltigrinus_v2/RRPM_ltigrinus/isoforms.fpkm_tracking")
 
-annotation <- read_tsv("Desktop/alternative_splicing/ltigrinus/ltigrinus_genome/ltigrinus_AS_annotation.gtf", 
+annotation <- read_tsv("Desktop/MTA/AS_project/FILES_ltigrinus_v2/GENOME_ltigrinus/ltigrinus_AS_annotation.gtf", 
                        col_names = c("chr", "maker", 
                                      "type", "start", 
                                      "end", "att1", 

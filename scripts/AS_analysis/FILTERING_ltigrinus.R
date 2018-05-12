@@ -9,12 +9,12 @@ library(tidyr)
 #    ADATOK BETÖLTÉSE, ÁTALAKÍTÁSA    #
 #######################################
 
-setwd("~/Desktop/alternative_splicing/ltigrinus/")  # beállítjuk a working directoryt
+setwd("~/Desktop/MTA/AS_project/FILES_ltigrinus_v2/")  # beállítjuk a working directoryt
 
-genes <- read_tsv("ltigrinus_genome/ltigrinus_onlygene.gtf", 
+genes <- read_tsv("GENOME_ltigrinus/ltigrinus_onlygene.gtf", 
                   col_names = c("chr", "maker", "type", "start", "end", "att1", "strand", "att2", "attributes"))     # beolvassuk az eredeti GTF fájlt
 
-raw <- read_tsv("ltigrinus_RRPM_CUFFout/transcripts.gtf", 
+raw <- read_tsv("RRPM_ltigrinus/transcripts.gtf", 
                 col_names = c("chr", "maker","type", "start", "end", "att1", "strand", "att2", "attributes"))        # beolvassuk a Cufflinks output GTF fájlt
 
 genes <- genes %>%
@@ -193,7 +193,7 @@ strand_filtered_final$transcriptID <- strand_filtered_final$transcriptID %>%
 
 strand_filtered_final <- unite(strand_filtered_final , attributes, 9:12, sep = " ")
 
-write.table(strand_filtered_final, file = "./ltigrinus_genome/ltigrinus_RRPM_transcripts.gtf", row.names = FALSE, col.names = FALSE, quote = FALSE, sep = "\t")
+write.table(strand_filtered_final, file = "./GENOME_ltigrinus/ltigrinus_RRPM_transcripts.gtf", row.names = FALSE, col.names = FALSE, quote = FALSE, sep = "\t")
 
 ############################
 #     ANNOTATION MERGE     #
@@ -210,7 +210,7 @@ for_merge$transcriptID <- for_merge$transcriptID %>%
   str_replace("^", "\"") %>%
   str_replace("$", "\";")   
 
-original <- read_tsv("ltigrinus_genome/ltigrinus_onlyexon.gtf", 
+original <- read_tsv("GENOME_ltigrinus/ltigrinus_onlyexon.gtf", 
                   col_names = c("chr", "maker", "type", "start", "end", "att1", "strand", "att2", "attributes"))     # beolvassuk az eredeti GTF fájlt
 
 original <- original %>%
@@ -231,7 +231,7 @@ stats[6,3] <- nrow(unique(merged[,"transcriptID"]))
 
 merged <- unite(merged , attributes, 9:12, sep = " ")
 
-write.table(merged, file = "./ltigrinus_genome/ltigrinus_AS_annotation.gtf", row.names = FALSE, col.names = FALSE, quote = FALSE, sep = "\t")
+write.table(merged, file = "./GENOME_ltigrinus/ltigrinus_AS_annotation.gtf", row.names = FALSE, col.names = FALSE, quote = FALSE, sep = "\t")
 
 write_tsv(stats, "ltigrinus_stats.log")
 
